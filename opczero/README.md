@@ -1,1 +1,2 @@
-- [ ] Threading to read last GPS entry and read the sensor for syncronous result generation
+- [x] Threading to read last GPS entry and read the sensor for syncronous result generation
+- [ ] power down usb when not in use
