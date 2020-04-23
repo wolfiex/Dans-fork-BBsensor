@@ -1,0 +1,1 @@
+- [ ] Threading to read last GPS entry and read the sensor for syncronous result generation
