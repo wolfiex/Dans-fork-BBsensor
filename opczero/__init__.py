@@ -8,10 +8,11 @@ class combign:pass
 # threading.Thread(target=self._thread_function, args=(arg,),
 #                  kwargs={'arg2':arg2}, name='thread_function').start()
 
-alpha.info()
+info(alpha)
 
 
-
+print('############# Sleep 10 ############')
+time.sleep(10)
 
 
 alpha.on()
@@ -22,10 +23,10 @@ for i in range(10):
 
     results = {}
 
-    loc = threading.Thread(target=lastloc, args=(ser,results), name='get location')
+    loc = Thread(target=lastloc, args=(ser,results), name='get location')
     loc.start()
 
-    sensor = threading.Thread(target=lastloc, args=(ser,results), name='get location')
+    sensor = Thread(target=poll, args=(alpha,results), name='get location')
     sensor.start()
 
     loc.join()
@@ -34,3 +35,5 @@ for i in range(10):
 
 
 alpha.off()
+
+print(l)

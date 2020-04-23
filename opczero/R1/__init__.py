@@ -20,7 +20,7 @@ def poll(alpha,result):
 
 
 
-def info():
+def info(alpha):
 	alpha.on()
 	sleep(1)
 	alpha.off()
