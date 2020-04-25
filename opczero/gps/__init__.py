@@ -4,6 +4,9 @@ Get GPS values from usb
 
 import serial
 
+last = None
+
+
 #find usb gps
 for i in range(10):
     try:# each unplug registers as a new number, we dont expect more than 10 unplugs without a restart
@@ -13,16 +16,27 @@ for i in range(10):
     except:continue
 
 
-def lastlocno(ser,result):
-    ser.write(bytes("ATI\r\n", "utf-8"));
-    while True:
-        last = ''
-        for byte in ser.read(ser.inWaiting()): last += chr(byte)
-        if len(last) > 0:
-            # Do whatever you want with last
-            result['location']=bytes(last, "utf-8")
-            print (bytes(last, "utf-8"))
-            last = ''
+def bg_poll(ser,lock):
+        global last
+        #ignored values to be named utc
+        params = 'utc gpstime lat utc lon utc fix nsat HDOP alt utc WGS84 utc lastDGPS utc utc'.split()
+        while True:
+                line = str(ser.readline())
+                
+                if line.find('GGA') > 0: 
+                    lock.acquire()
+                    last = dict(zip(params,line.split(',')))
+                    lock.release()
+                    
+                    
+                    
+def latlon():
+    global last
+    if last['lat']=='' or last['lon']=='':
+        return [0,0]
+    else: 
+        return [float(last['lat']),float(last['lon'])]
 
-def lastloc(ser,result):
-	result['location']= ser.readline()
+
+
+

@@ -7,6 +7,8 @@ spi.open(0, 0)
 spi.mode = 1
 spi.max_speed_hz = 500000
 
+keep='Temperature,Humidity,Sampling Period,PM1,PM2.5,PM10'.split(',')
+
 sleep(1.0)
 try:
 	alpha = opc.OPCR1(spi)
@@ -15,9 +17,9 @@ except Exception as e:
 print (alpha)
 
 
-def poll(alpha,result):
-	result['measure'] = alpha.pm()
-
+def poll(alpha):
+	return alpha.histogram()#alpha.pm()
+    #return dict((k, res[k]) for k in keep)
 
 
 def info(alpha):
