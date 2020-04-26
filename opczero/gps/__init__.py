@@ -5,15 +5,18 @@ Get GPS values from usb
 import serial
 
 last = None
+ser = None
 
 
-#find usb gps
-for i in range(10):
-    try:# each unplug registers as a new number, we dont expect more than 10 unplugs without a restart
-        ser = serial.Serial('/dev/ttyACM%d'%i)
-        print( 'Connected serial on /dev/ttyACM%d'%i)
-        break
-    except:continue
+
+def connect():
+    global ser
+    for i in range(10):
+        try:# each unplug registers as a new number, we dont expect more than 10 unplugs without a restart
+            ser = serial.Serial('/dev/ttyACM%d'%i)
+            print( 'Connected serial on /dev/ttyACM%d'%i)
+            break
+        except:continue
 
 
 def bg_poll(ser,lock):
@@ -28,8 +31,7 @@ def bg_poll(ser,lock):
                     last = dict(zip(params,line.split(',')))
                     lock.release()
                     
-                    
-                    
+                                    
 def latlon():
     global last
     if last['lat']=='' or last['lon']=='':
@@ -40,3 +42,6 @@ def latlon():
 
 
 
+
+#find usb gps
+connect()

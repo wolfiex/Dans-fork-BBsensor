@@ -3,7 +3,7 @@ from datetime import datetime
 import time
 
 
-import gps
+import gps,power
 from R1 import alpha,info,poll,keep
 import fileio
 #
@@ -11,9 +11,10 @@ import fileio
 #                  kwargs={'arg2':arg2}, name='thread_function').start()
 
 # checks interval (seconds)
-FAST_DURATION = 5*60
+FAST_DURATION = 1*60
 assert FAST_DURATION >= 60 # results are sampled every 30 seconds, sample atleast 2
-
+move = [0]*10
+counter = 0
 
 
 
@@ -31,8 +32,8 @@ loc = Thread(target=gps.bg_poll, args=(gps.ser,lock), name='location_daemon')
 loc.setDaemon(True)#bg
 loc.start()
 
-time.sleep(10)
-
+# 10 second delay and blink - 
+power.blink(10)
 
 '''
 delete /var/lib/bluetooth/xx:xx:xx:xx:xx:xx/config file.
@@ -47,14 +48,16 @@ def fastsample():
     start = datetime.utcnow()
     start_geo = gps.latlon()
     res = ''
-    alpha.on()
     elapsed = 0
 
+    alpha.on()
     while elapsed < FAST_DURATION:
+        
         
         now = datetime.utcnow()
         elapsed = (now-start).seconds
         
+        time.sleep(10)
         #gps global
         location = gps.last.copy()
         #sensor read
@@ -81,13 +84,18 @@ def fastsample():
 
 
 while True:
-    
+    power.ledoff()
     while gps.last == None:
         print('waiting for gps result')
         time.sleep(4)
         continue
         
     data,diff = fastsample()
+    
+    
+    
+    
+    power.ledon()
     fileio.f.write(bytes(data,"utf-8"))
     print(data,diff)
     
