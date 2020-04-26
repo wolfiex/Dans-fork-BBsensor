@@ -3,9 +3,10 @@ from datetime import datetime
 import time
 
 
+import fileio
 import gps,power
 from R1 import alpha,info,poll,keep
-import fileio
+
 #
 # threading.Thread(target=self._thread_function, args=(arg,),
 #                  kwargs={'arg2':arg2}, name='thread_function').start()
@@ -15,6 +16,8 @@ FAST_DURATION = 1*60
 assert FAST_DURATION >= 60 # results are sampled every 30 seconds, sample atleast 2
 move = [0]*10
 counter = 0
+
+print('write',fileio.f)
 
 
 

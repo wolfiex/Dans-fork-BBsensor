@@ -43,7 +43,3 @@ def info(alpha):
 	# print(alpha.histogram())
 	# print("Read PM")
 	# print(alpha.pm())
-
-	alpha.on()
-	sleep(1)
-	alpha.off()
