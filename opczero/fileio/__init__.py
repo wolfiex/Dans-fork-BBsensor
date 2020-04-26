@@ -1,12 +1,20 @@
 '''
 fileio
 '''
-
+import os
+user = os.popen('echo $USER').read().strip()
 
 # output file   
-__RDIR__ = '/root'
-f = open(__RDIR__+'/results.csv','ba')#ba
-print('results at '+__RDIR__+'/results.csv')
+if user == 'root': __RDIR__ = '/root'
+else: __RDIR__ = '/home/'+user
+
+
+from datetime import date
+__FILE__ = date.today().strftime("/results_%d_%m_%Y.csv")
+
+
+f = open(__RDIR__+__FILE__,'ba')#ba
+print('results at '+__RDIR__+__FILE__)
 
 
 def onexit():

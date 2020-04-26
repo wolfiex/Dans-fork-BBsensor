@@ -2,7 +2,7 @@
 Get GPS values from usb
 '''
 
-import serial
+import serial,time
 
 last = None
 ser = None
@@ -24,7 +24,16 @@ def bg_poll(ser,lock):
         #ignored values to be named utc
         params = 'utc gpstime lat utc lon utc fix nsat HDOP alt utc WGS84 utc lastDGPS utc utc'.split()
         while True:
-                line = str(ser.readline())
+                try:
+                    line = str(ser.readline())
+                except serial.SerialException:
+                    print('lost connection - reconnect usb')
+                    #last = {}
+                    connect()
+                    time.sleep(5)
+                    
+                    continue
+                    
                 
                 if line.find('GGA') > 0: 
                     lock.acquire()

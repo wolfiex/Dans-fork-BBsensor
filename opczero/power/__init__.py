@@ -8,10 +8,10 @@ os.system('echo none | sudo tee /sys/class/leds/led0/trigger')
 
 
 def ledon():
-    os.system('echo 0 | sudo tee /sys/class/leds/led0/brightness')
+    os.system('echo 0 | sudo tee /sys/class/leds/led0/brightness > /dev/null')
     
 def ledoff():
-    os.system('echo 1 | sudo tee /sys/class/leds/led0/brightness')
+    os.system('echo 1 | sudo tee /sys/class/leds/led0/brightness > /dev/null')
     
 def blink(n = 4 ):
     for i in range(n):
@@ -19,11 +19,51 @@ def blink(n = 4 ):
         time.sleep(1)
         ledoff()
 
+
+#
+# threading.Thread(target=self._thread_function, args=(arg,),
+#                  kwargs={'arg2':arg2}, name='thread_function').start()
+
+
+terminate = True 
+
+def threadblink():
+    global terminate
+    while terminate:
+        ledon()
+        time.sleep(1)
+        ledoff()
+
 def blink_nonblock(n=4):
     from threading import Thread
-    loc = Thread(target=blink, args=(n), name='blink')
+    loc = Thread(target=blink, args={n:n}, name='blink')
     loc.start()
     loc.join(n)
+
+def blink_nonblock_inf():
+    from threading import Thread
+    loc = Thread(target=threadblink, name='blink')
+    loc.start()
+    return loc
+
+def stopblink(thread):
+    global terminate
+    terminate = False
+    thread.join(.1)
+    time.sleep(2)
+    terminate = True
+
+
+def getrunloc():
+    import os
+    name = os.popen('echo $USER').read()
+    location = os.popen('pwd').read()
+    with open('/home/pi/loading.txt','w') as f:
+        f.write(name)
+        f.write(location)
+    import sys 
+    #import shutdown
+    #sys.exit('load test')
 
 
 

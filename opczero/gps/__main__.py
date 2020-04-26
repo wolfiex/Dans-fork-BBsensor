@@ -6,7 +6,7 @@ Test the threading of the gps
 
 import gps
 from threading import Thread,Lock
-from datetime import datetime,timezone
+from datetime import datetime
 import time
 
 lock = Lock()
