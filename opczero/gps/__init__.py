@@ -6,11 +6,12 @@ import serial,time
 
 last = None
 ser = None
+gpio = True
 
 
 
-def connect(gpio=True):
-    global ser
+def connect():
+    global ser,gpio
     if gpio:
         ser = serial.Serial('/dev/ttyS0')
     else:   
@@ -33,7 +34,7 @@ def bg_poll(ser,lock):
                 try:
                     line = str(ser.readline())
                 except serial.SerialException:
-                    print('lost connection - reconnect usb')
+                    print('lost connection - reconnecting')
                     #last = {}
                     connect()
                     time.sleep(5)
