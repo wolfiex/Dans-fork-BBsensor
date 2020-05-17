@@ -18,7 +18,7 @@ def connect(gpio=True):
             try:# each unplug registers as a new number, we dont expect more than 10 unplugs without a restart
                 #try:ser = serial.Serial('/dev/ttyAMA%d'%i)
                 #except:
-                    ser = serial.Serial('/dev/ttyACM%d'%i)
+                ser = serial.Serial('/dev/ttyACM%d'%i)
 
                 print( 'Connected serial on /dev/ttyACM%d'%i)
                 break
