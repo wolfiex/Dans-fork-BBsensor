@@ -9,16 +9,20 @@ ser = None
 
 
 
-def connect():
+def connect(gpio=True):
     global ser
-    for i in range(10):
-        try:# each unplug registers as a new number, we dont expect more than 10 unplugs without a restart
-            try:ser = serial.Serial('/dev/ttyAMA%d'%i)
-            except: ser = serial.Serial('/dev/ttyACM%d'%i)
-            
-            print( 'Connected serial on /dev/ttyACM%d'%i)
-            break
-        except:continue
+    if gpio:
+        ser = serial.Serial('/dev/ttyS0')
+    else:   
+        for i in range(10):
+            try:# each unplug registers as a new number, we dont expect more than 10 unplugs without a restart
+                #try:ser = serial.Serial('/dev/ttyAMA%d'%i)
+                #except:
+                    ser = serial.Serial('/dev/ttyACM%d'%i)
+
+                print( 'Connected serial on /dev/ttyACM%d'%i)
+                break
+            except:continue
 
 
 def bg_poll(ser,lock):
