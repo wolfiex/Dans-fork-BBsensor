@@ -1,7 +1,7 @@
 from threading import Thread,Lock
 from datetime import datetime
 import time,re
-import power
+from . import power
 
 ###########################
 ## Loading
