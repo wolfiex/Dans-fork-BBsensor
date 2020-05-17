@@ -1,7 +1,11 @@
 from threading import Thread,Lock
 from datetime import datetime
-import time,re
+import time,re,sys
 from . import power
+
+if sys.version[0] != '3':
+    sys.exit('Unfortunately this code was written for py3k, \n feel free to update it through on https://github.com/wolfiex/BBSensor')
+
 
 ###########################
 ## Loading
