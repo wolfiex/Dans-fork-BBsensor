@@ -14,5 +14,6 @@ sudo apt-get install python3-ipython;
 #/dev/ttyS0 is owned by the user root and the group dialout, so to be able to acesss the serial device, I would add myself to the dialout group:
 
 sudo usermod -a -G tty $USER
+sudo chmod 666 /dev/ttyS0
 
 #sudo apt-get install bluez python-bluez;
