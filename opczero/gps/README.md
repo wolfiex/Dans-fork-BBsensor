@@ -1,5 +1,109 @@
 # opczero.gps
 
+
+
+The raspberry pi needs some additional setting up to be had. 
+We use the GPS clock for measurements. 
+
+
+
+
+## Install 
+```
+stty -F /dev/ttyS0 -echo    
+
+
+
+sudo stty -F /dev/ttyS0 ispeed 4800 && cat </dev/ttyS0
+    
+    
+sudo apt-get -y install scons libncurses5-dev python-dev pps-tools git-core
+
+
+sudo systemctl stop serial-getty@ttyS0.service
+sudo systemctl disable serial-getty@ttyS0.service
+sudo nano /boot/cmdline.txt
+
+remove the line: console=serial0,115200 and save and reboot for changes to take effect.
+
+Its because in RPI3 ttyS0 is disabled by default. enable the ttyS0 in file sudo nano /boot/config.txt and at the bottom of file change 0 to 1 to enable ttyS0 enable_uart=1 and reboot.
+
+```
+
+The second serial port you will see referred to as the “mini uart” and lives at /dev/ttyS0. It also calculates it’s bit timing’s from the CPU cores frequency and if the CPU is under heavy load it can corrupt the serial communications. Not good.
+
+In order to work around this, many people “fix” the CPU core frequency so that the serial port is stable. This comes at a slight loss in performance (though normally not noticeable). I’ll describe how you do this in the next section.
+
+In order to try and get around this the Foundation have introduced a serial port alias (as of May 2016 – 2016-05-10). Thus you have serial ports: serial0 and serial1 (rpi3). The Raspberry Pi kernel sorts out where these point to depending on which Raspberry Pi you are on. Thus on a Raspberry Pi 3 / 4 serial0 will point to GPIO pins 14 and 15 and use the “mini-uart” aka /dev/ttyS0. On other Raspberry Pi’s  it will point to the hardware UART and /dev/ttyAMA0.
+
+
+ls -l /dev
+https://github.com/bzed/pkg-gpsd/blob/master/ubxtool
+sudo apt-get install gpsd
+
+
+
+## Doc 
+https://www.u-blox.com/sites/default/files/products/documents/u-blox8-M8_ReceiverDescrProtSpec_%28UBX-13003221%29.pdf
+
+## background reading on gps
+https://www.u-blox.com/sites/default/files/products/documents/GPS-Compendium_Book_%28GPS-X-02007%29.pdf
+
+## Sleep 
+
+• Power Save Mode Cyclic Tracking (PSMCT) Operation is used when position fixes are required in short periods of 1 to 10s. In receivers that support Super-E Mode, Super-E replaces Cyclic Tracking.
+• Power Save Mode ON/OFF (PSMOO) Operation is used for periods longer than 10s, and can be in the order of minutes, hours or days. (Not supported in protocol versions 23 to 23.01)
+The mode of operation can be configured, and depending on the setting, the receiver demonstrates different behavior: In ON/OFF operation the receiver switches between phases of start-up/navigation and phases with low or almost no system activity (backup/sleep). In cyclic tracking the receiver does not shut down completely between fixes, but uses low power tracking instead.
+Currently PSMCT is restricted to update period between 1 and 10 seconds and PSMOO is restricted to update period over 10 seconds. However, this may change in future firmware releases.
+
+
+
+
+
+
+## Specification - same gps as usb sticks
+
+The TBS M8 GPS Glonass is a 18x18x6mm GPS module ideal for planes, micro or larger quads. The TBS M8 GPS Glonass unit only weighs 5.8g and it can be powered from 3.3v.
+
+
+Specifications:
+
+Chipset - ublox UBX-M8030
+
+Frequency - L1, 1575.42MHz
+
+Baud Rate - 4800,9600,19200,38400,57600,115200bps
+
+Channel - 72
+
+Sensitivity - (Tracking: -164dBm) | (Capture: -159dBm) | (Cold Start - 147dBm)
+
+Cold start - Average 26 seconds
+
+Warm start - Average 24 seconds
+
+Hot start - Average 1 second
+
+Accuracy - (Horizontal Position:Autonomous<2.5m average) | (SBAS < 2.0m average) | (Timepulse signal: RMS 30 ns)
+
+Maximum height - 50000m
+
+Maximum speed - 500 m/s
+
+Maximum acceleration - ≦ 4G
+
+Refresh Rate - 1-10 Hz
+
+Size - 18 x 18 x 6mm
+
+Weight - 4.3g
+
+Input Voltage - 3.3V
+
+
+https://www.u-blox.com/sites/default/files/products/documents/u-blox8-M8_ReceiverDescrProtSpec_%28UBX-13003221%29.pdf
+
+
 #GPS GGA format
 http://aprs.gids.nl/nmea/
 Global Positioning System Fix Data
@@ -21,56 +125,4 @@ eg3. $GPGGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*hh
 13   = Age in seconds since last update from diff. reference station
 14   = Diff. reference station ID#
 15   = Checksum
-```
-
-#GPRMC
-
-Recommended minimum specific GPS/Transit data
-```
-eg1. $GPRMC,081836,A,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E*62
-eg2. $GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68
-
-
-           225446       Time of fix 22:54:46 UTC
-           A            Navigation receiver warning A = OK, V = warning
-           4916.45,N    Latitude 49 deg. 16.45 min North
-           12311.12,W   Longitude 123 deg. 11.12 min West
-           000.5        Speed over ground, Knots
-           054.7        Course Made Good, True
-           191194       Date of fix  19 November 1994
-           020.3,E      Magnetic variation 20.3 deg East
-           *68          mandatory checksum
-
-
-eg3. $GPRMC,220516,A,5133.82,N,00042.24,W,173.8,231.8,130694,004.2,W*70
-              1    2    3    4    5     6    7    8      9     10  11 12
-
-
-      1   220516     Time Stamp
-      2   A          validity - A-ok, V-invalid
-      3   5133.82    current Latitude
-      4   N          North/South
-      5   00042.24   current Longitude
-      6   W          East/West
-      7   173.8      Speed in knots
-      8   231.8      True course
-      9   130694     Date Stamp
-      10  004.2      Variation
-      11  W          East/West
-      12  *70        checksum
-
-
-eg4. $GPRMC,hhmmss.ss,A,llll.ll,a,yyyyy.yy,a,x.x,x.x,ddmmyy,x.x,a*hh
-1    = UTC of position fix
-2    = Data status (V=navigation receiver warning)
-3    = Latitude of fix
-4    = N or S
-5    = Longitude of fix
-6    = E or W
-7    = Speed over ground in knots
-8    = Track made good in degrees True
-9    = UT date
-10   = Magnetic variation degrees (Easterly var. subtracts from true course)
-11   = E or W
-12   = Checksum
 ```

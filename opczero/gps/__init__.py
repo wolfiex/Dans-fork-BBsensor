@@ -4,11 +4,11 @@ Get GPS values from usb
 
 import serial,time
 
-last = None
+last = {'gpstime':None}
 ser = None
 gpio = True
 
-
+__all__ = 'last ser gpio connect bg_poll latlon'.split()
 
 def connect():
     global ser,gpio
@@ -33,19 +33,19 @@ def bg_poll(ser,lock):
         while True:
                 try:
                     line = str(ser.readline())
+                    
                 except serial.SerialException:
                     print('lost connection - reconnecting')
                     #last = {}
                     connect()
                     time.sleep(5)
-                    
                     continue
                     
-                
                 if line.find('GGA') > 0: 
                     lock.acquire()
                     last = dict(zip(params,line.split(',')))
                     lock.release()
+                    #print(last)
                     
                                     
 def latlon():

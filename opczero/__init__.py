@@ -1,3 +1,15 @@
+'''
+RPI sensor code. 
+
+sudo nano /etc/rc.local
+
+cd /home/pi/BBSensor && python3 -m opczero >> /root/sensor.log
+
+
+'''
+
+
+
 from threading import Thread,Lock
 from datetime import datetime
 import time,re,sys
@@ -18,7 +30,7 @@ from . import fileio,gps
 from .R1 import alpha,info,poll,keep
 alpha.off()
 
-if __name__ == '__main__':
+if True:#__name__ == '__main__':
 
 
     # checks interval (seconds)
@@ -87,7 +99,7 @@ if __name__ == '__main__':
 
             # merge
             for k in keep: location[k] = sensor[k]
-            location['utc']= now
+            location['utc']= __str__(now)
 
             res += str(location)+'\n'
 

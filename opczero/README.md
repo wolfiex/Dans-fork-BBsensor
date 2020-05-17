@@ -10,6 +10,10 @@
 
 
 
+## Reading Materials     
+### How GPS works - the Compendium_Book
+https://www.u-blox.com/sites/default/files/products/documents/GPS-Compendium_Book_%28GPS-X-02007%29.pdf
+
 
 ## Test
 `python3 -m gps`
