@@ -11,8 +11,8 @@ from . import power
 loading = power.blink_nonblock_inf()
 
 
-import fileio,gps
-from R1 import alpha,info,poll,keep
+from . import fileio,gps
+from .R1 import alpha,info,poll,keep
 
 # checks interval (seconds)
 # results are sampled every 30 seconds, sample atleast 2
