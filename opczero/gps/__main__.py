@@ -4,7 +4,7 @@ Test the threading of the gps
 
 
 
-from . import __init__
+from . import __init__ as gps
 from threading import Thread,Lock
 from datetime import datetime
 import time
