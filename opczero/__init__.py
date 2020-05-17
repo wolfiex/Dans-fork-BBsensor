@@ -16,6 +16,7 @@ loading = power.blink_nonblock_inf()
 
 from . import fileio,gps
 from .R1 import alpha,info,poll,keep
+alpha.off()
 
 if __name__ == '__main__':
 
