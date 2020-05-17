@@ -14,11 +14,11 @@ if sys.version[0] != '3':
 # loading blinks
 loading = power.blink_nonblock_inf()
 
+from . import fileio,gps
+from .R1 import alpha,info,poll,keep
 
 if __name__ == '__main__':
 
-    from . import fileio,gps
-    from .R1 import alpha,info,poll,keep
 
     # checks interval (seconds)
     # results are sampled every 30 seconds, sample atleast 2
