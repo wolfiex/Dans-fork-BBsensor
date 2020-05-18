@@ -20,13 +20,13 @@ print('results at '+__RDIR__+__FILE__)
 def onexit():
     f.close()
     try:
-        from R1 import alpha
+        from ..R1 import alpha
         alpha.off()
-    except:
-        print('OPC failure')
+    except Exception as e:
+        print('OPC failure', e)
     import os
-    print('rebooting')
-    os.system('sudo reboot')
+    ##print('rebooting')
+    ##os.system('sudo reboot')
     
 import atexit
 atexit.register(onexit)

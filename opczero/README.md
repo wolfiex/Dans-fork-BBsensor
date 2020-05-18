@@ -7,8 +7,8 @@
 - [x] remove 'wait for network on boot'
 - [ ] on wifi, upload (limited to once every two hours (param) ), move data to archive folder
 - [x] datafile location based on user (home/root) - update to use HOME env var at later point
-
-
+- [ ] reenable reboot on fail
+- [ ] log location on boot updata
 
 ## Reading Materials     
 ### How GPS works - the Compendium_Book
