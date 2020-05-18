@@ -25,7 +25,7 @@ if sys.version[0] != '3':
 
 # loading blinks
 loading = power.blink_nonblock_inf()
-
+time.sleep(10)
 from . import fileio,gps
 from .R1 import alpha,info,poll,keep
 alpha.off()
