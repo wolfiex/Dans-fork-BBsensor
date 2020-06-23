@@ -13,20 +13,7 @@ cd /home/pi/BBSensor && sudo python3 -c 'import opczero;opczero.run()'  >> /root
 from threading import Thread,Lock
 from datetime import datetime
 import time,re,sys
-from . import power
-import signal,sys,time                          
-terminate = False    
-                        
-DEBUG = False
-
-
-def signal_handling(signum,frame):           
-    global terminate          
-    print('termination signal ctrl + c')               
-    terminate = True                         
-
-signal.signal(signal.SIGINT,signal_handling) 
-
+import power
 
 if sys.version[0] != '3':
     sys.exit('Unfortunately this code was written for py3k, \n feel free to update it through on https://github.com/wolfiex/BBSensor')
@@ -38,16 +25,13 @@ if sys.version[0] != '3':
 
 # loading blinks
 loading = power.blink_nonblock_inf()
-time.sleep(10)
-from . import fileio,gps
-from .R1 import alpha,info,poll,keep
+time.sleep(4)
+import fileio,gps
 
 
-
-# save interval (seconds)
-SAVE_INTERVAL = 30#2*60
-assert SAVE_INTERVAL >= 20 
-print ('SAVE_INTERVAL:',SAVE_INTERVAL,'s' )
+# checks interval (seconds)
+# results are sampled every 30 seconds, sample atleast 2
+FAST_DURATION = 15
 
 move = [0]*10
 counter = 0
@@ -60,13 +44,6 @@ clean = re.compile('[\{\}]')
 
 print('write',fileio.f)
 
-info(alpha)
-
-print('############# SampleHist. ############')
-alpha.on()
-time.sleep(1)
-print(poll(alpha))
-alpha.off()
 
 print('############# GPS daemon ############')
 lock = Lock()
@@ -77,7 +54,7 @@ loc.start()
 
 
 #stop blinking
-time.sleep(10)
+time.sleep(3)
 while loading.isAlive():
     print('stopping loading blink ...')
     power.stopblink(loading)
@@ -94,38 +71,27 @@ print('############# BEGIN ############')
 
 
 def fastsample():
-    ''' 
-    sample at 1hz (sleep 1) and save every SAVE_INTERVAL
-    '''
-    global terminate
     start = datetime.utcnow()
     start_geo = gps.latlon()
     res = ''
     elapsed = 0
 
-    alpha.on()
     print('on')
-    while elapsed < SAVE_INTERVAL:
+    while elapsed < FAST_DURATION:
 
         now = datetime.utcnow()
         elapsed = (now-start).seconds
 
-        time.sleep(5)
+        time.sleep(2)
+        #gps global
         location = gps.last.copy()
         #sensor read
-        sensor = poll(alpha)
 
-        # merge
-        for k in keep: location[k] = sensor[k]
         location['utc']= str(now)
 
         res += str(location)+'\n'
-        if terminate: break
 
 
-    alpha.off()
-    time.sleep(1)
-    print('sensor')
     end_geo = gps.latlon()
     return res, [abs(end_geo[i] - start_geo[i])**2 for i in [0,1]]
 
@@ -141,7 +107,7 @@ def run(repeat = 1e99):
     while gps.last == {'gpstime':None}:
         print('waiting for gps result')
         time.sleep(4)
-        continue
+        #continue
 
     print('start')
     
@@ -149,12 +115,11 @@ def run(repeat = 1e99):
         power.ledoff()
         data,diff = fastsample()
         power.ledon()
-        if DEBUG: print('data',data,i)
+        print('data:',data)
         fileio.f.write(bytes(clean.sub('',data),"utf-8"))
-        if terminate: break
         time.sleep(1)
         print(diff)
     
     
-
+run()
 
