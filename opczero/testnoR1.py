@@ -121,5 +121,5 @@ def run(repeat = 1e99):
         print(diff)
     
     
-run()
+run(10)
 
