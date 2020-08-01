@@ -17,6 +17,9 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
-cd /home/pi/BBSensor && sudo python3 -c 'import opczero;opczero.run()'  >> /root/sensor.log &
+#cd /home/pi/BBSensor && sudo python3 -c 'import opczero;opczero.run()'  >> /root/sensor.log &
+
+
+
 
 exit 0
