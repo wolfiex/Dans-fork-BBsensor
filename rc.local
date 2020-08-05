@@ -1,4 +1,4 @@
-#!/bin/sh -e
+-#!/bin/sh -e
 #
 # rc.local
 #
@@ -16,6 +16,16 @@ _IP=$(hostname -I) || true
 if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
+
+
+export DEBUG=TRUE;
+
+# sudo rfcomm release rfcomm1;
+# sudo pkill -9 rfcomm;
+
+sudo rfcomm watch rfcomm1 &
+
+# cd /home/pi/BBSensor/opczero && sudo python3 shutdown.py &
 
 cd /home/pi/BBSensor && sudo python3 -c 'import opczero;opczero.run()'  >> /root/sensor.log &
 
