@@ -24,7 +24,7 @@ bserial = False
 if DEBUG:
     try:
         bserial = open('/dev/rfcomm1','w',1)
-        bserial.write('staring')
+        bserial.write('starting')
         bserial.close()
         print('debug using bluetooth serial: on')
     except:print('no bluetooth serial')

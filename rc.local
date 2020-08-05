@@ -23,10 +23,13 @@ export DEBUG=TRUE;
 # sudo rfcomm release rfcomm1;
 # sudo pkill -9 rfcomm;
 
-sudo rfcomm watch rfcomm1 &
+
 
 # cd /home/pi/BBSensor/opczero && sudo python3 shutdown.py &
 
 cd /home/pi/BBSensor && sudo python3 -c 'import opczero;opczero.run()'  >> /root/sensor.log &
+
+
+sudo rfcomm watch rfcomm1 1 &
 
 exit 0
