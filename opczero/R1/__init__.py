@@ -5,7 +5,7 @@ from time import sleep
 spi = spidev.SpiDev()
 spi.open(0, 0)
 spi.mode = 1
-spi.max_speed_hz = 500000
+spi.max_speed_hz = 20000 #500000
 
 keep='Temperature,Humidity,Sampling Period,PM1,PM2.5,PM10'.split(',')
 
@@ -24,7 +24,7 @@ def poll(alpha):
 
 def info(alpha):
 	alpha.on()
-	sleep(1)
+	sleep(2)
 	alpha.off()
 
 	print("Read info string")
