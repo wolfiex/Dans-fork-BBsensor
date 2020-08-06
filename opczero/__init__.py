@@ -51,7 +51,7 @@ if DEBUG:
         # Load watch command for bluetooth
         # do this after 10 second delay from code to allow pi to finish booting.
         bserial = True
-	os.system("pkill -9 screen")
+        os.system("pkill -9 screen")
         os.system("screen -S ble -X stuff 'sudo rfcomm release rfcomm1 1 ^M' ")
         os.system("screen -S ble -X stuff 'sudo rfcomm listen rfcomm1 1 & ^M' ")
         # open('/dev/rfcomm1','w',1)

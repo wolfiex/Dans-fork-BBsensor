@@ -19,16 +19,11 @@ fi
 
 export DEBUG=TRUE;
 
-# sudo rfcomm release rfcomm1;
-# sudo pkill -9 rfcomm;
-
-
 screen -dmS ble;
+
+
+# sudo -u pi sh -c 'sleep 20 && sudo rfcomm watch rfcomm0 1 &' &
 
 # cd /home/pi/BBSensor/opczero && sudo python3 shutdown.py &
 
 cd /home/pi/BBSensor && sudo python3 -c 'import opczero;opczero.run()'  >> /root/sensor.log &
-
-
-#sudo -u pi sh -c 'sleep 20 && sudo rfcomm watch rfcomm0 1 &' &
-
