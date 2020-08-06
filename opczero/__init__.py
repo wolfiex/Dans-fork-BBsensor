@@ -20,6 +20,18 @@ terminate = False
 DEBUG = True #os.environ['DEBUG'] =='TRUE'
 print('debug:', DEBUG)
 
+if DEBUG:
+    try:
+        # Load watch command for bluetooth
+        # do this after 10 second delay from code to allow pi to finish booting.
+        bserial = True
+        os.system("screen -S ble -X stuff 'sudo rfcomm release rfcomm1 1 ^M' ")
+        os.system("screen -S ble -X stuff 'sudo rfcomm watch rfcomm1 1 & ^M' ")
+        # open('/dev/rfcomm1','w',1)
+        # bserial.write('starting')
+        # bserial.close()
+        print('debug using bluetooth serial: on')
+    except:print('no bluetooth serial')
 
 
 
@@ -42,29 +54,18 @@ if sys.version[0] != '3':
 
 # loading blinks
 loading = power.blink_nonblock_inf()
-time.sleep(10)
+time.sleep(6)
+print('loading file and gps')
 from . import fileio,gps
+print('loading sensor')
 from .R1 import alpha,info,poll,keep
 
-if DEBUG:
-    try:
-        # Load watch command for bluetooth
-        # do this after 10 second delay from code to allow pi to finish booting.
-        bserial = True
-        os.system("pkill -9 screen")
-        os.system("screen -S ble -X stuff 'sudo rfcomm release rfcomm1 1 ^M' ")
-        os.system("screen -S ble -X stuff 'sudo rfcomm listen rfcomm1 1 & ^M' ")
-        # open('/dev/rfcomm1','w',1)
-        # bserial.write('starting')
-        # bserial.close()
-        print('debug using bluetooth serial: on')
-    except:print('no bluetooth serial')
 
 
 # save interval (seconds)
 
 '''sample interval - how long to run before saving'''
-SAVE_INTERVAL = 10#2*60
+SAVE_INTERVAL = 13#2*60
 
 
 #assert SAVE_INTERVAL >= 20
@@ -83,14 +84,11 @@ print('write',fileio.f)
 
 info(alpha)
 
-print('############# SampleHist. ############')
-alpha.on()
-time.sleep(1)
-test = poll(alpha)
-print(test)
-# if bserial:os.system('sudo -u pi echo "%s" > /dev/rfcomm1'% str(test))
-del test
-alpha.off()
+# print('############# SampleHist. ############')
+# alpha.on()
+# time.sleep(1)
+# print(poll(alpha))
+# alpha.off()
 
 print('############# GPS daemon ############')
 lock = Lock()
@@ -101,7 +99,7 @@ loc.start()
 
 
 #stop blinking
-time.sleep(10)
+time.sleep(4)
 while loading.isAlive():
     print('stopping loading blink ...')
     power.stopblink(loading)
