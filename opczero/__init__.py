@@ -2,7 +2,7 @@
 RPI sensor code.
 
 sudo nano /etc/rc.local
-
+sudo python3 /home/pi/BBSensor/opczero/shutdown.py
 cd /home/pi/BBSensor && sudo python3 -c 'import opczero;opczero.run()'  >> /root/sensor.log &
 
 
@@ -20,14 +20,7 @@ terminate = False
 DEBUG = True #os.environ['DEBUG'] =='TRUE'
 print('debug:', DEBUG)
 
-bserial = False
-if DEBUG:
-    try:
-        bserial = open('/dev/rfcomm1','w',1)
-        bserial.write('starting')
-        bserial.close()
-        print('debug using bluetooth serial: on')
-    except:print('no bluetooth serial')
+
 
 
 
@@ -53,6 +46,19 @@ time.sleep(10)
 from . import fileio,gps
 from .R1 import alpha,info,poll,keep
 
+if DEBUG:
+    try:
+        # Load watch command for bluetooth
+        # do this after 10 second delay from code to allow pi to finish booting.
+        bserial = True
+	os.system("pkill -9 screen")
+        os.system("screen -S ble -X stuff 'sudo rfcomm release rfcomm1 1 ^M' ")
+        os.system("screen -S ble -X stuff 'sudo rfcomm listen rfcomm1 1 & ^M' ")
+        # open('/dev/rfcomm1','w',1)
+        # bserial.write('starting')
+        # bserial.close()
+        print('debug using bluetooth serial: on')
+    except:print('no bluetooth serial')
 
 
 # save interval (seconds)
@@ -82,7 +88,7 @@ alpha.on()
 time.sleep(1)
 test = poll(alpha)
 print(test)
-if bserial:os.system('sudo echo "%s" > /dev/rfcomm1'% str(test))
+# if bserial:os.system('sudo -u pi echo "%s" > /dev/rfcomm1'% str(test))
 del test
 alpha.off()
 
@@ -168,7 +174,7 @@ def run(repeat = 1e99):
         data ,last = fastsample()
         power.ledon()
         if DEBUG:
-            if bserial : os.system('sudo echo "%s" > /dev/rfcomm1'%'_'.join(last))
+            if bserial : os.system("screen -S ble -X stuff 'sudo echo \"%s\" > /dev/rfcomm1 ^M' " %'_'.join(last))
             print('data',data,last ,i)
         fileio.f.write(bytes(clean.sub('',data),"utf-8"))
         if terminate: break
