@@ -1,12 +1,11 @@
-# BBSensor
-OPC R1 sensor script for Pi Zero
+# BBServer!
+OPC R1 server scripts for Pi3
 
 
 ## Setup
-### adding submodules 
-`git submodule update --init --recursive`
+### seting up logger
+`bash setup/opc_install.sh`
 
-### installing opc library 
-`cd py-opc-R1 && sudo python3 setup.py develop ; cd - `
 
-### run tests
+### server
+`bash setup/...install.sh`
