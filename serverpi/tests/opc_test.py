@@ -22,14 +22,14 @@ alpha.off()
 
 
 print ('onoff')
-for i in range(10):
+for i in range(5):
     print (i)
     alpha.on()
     d = poll(alpha)
     alpha.off()
-    
+
     print(d)
-    
+
 
 
 print ('onstay')
@@ -38,4 +38,4 @@ for i in range(10):
     print (i)
     d = poll(alpha)
     print(d)
-alpha.off()    
+alpha.off()
