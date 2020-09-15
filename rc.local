@@ -10,8 +10,8 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
-sudo systemctl stop ntp
-sudo ntpd -q -g
+sudo systemctl stop ntp;
+sudo ntpd -q -g >> /root/time.log
 
 
 #cd /home/pi/BBSensor && sudo python3 -c 'import opczero;opczero.run()'  >> /root/sensor.log &
