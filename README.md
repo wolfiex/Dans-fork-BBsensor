@@ -13,7 +13,7 @@ OPC R1 server scripts for Pi3
 `bash setup/...install.sh`
 
 
-## link .rc_local to the mainbashrc 
+## link .rc_local to run on boot
 Open `sudo nano /etc/rc.local`
 and source the local rc file in this directory. 
 
@@ -21,12 +21,14 @@ For testing this will likely be under `/home/pi/BBSensor/rc.local` but will even
 
 We add the lines:
 
-``` source activate sudo nano /etc/rc.local ```
+``` bash /home/pi/BBSensor/rc.local ```
+or 
+``` bash /root/BBSensor/rc.local ```
 
 ### rc.local contents
 
 This contains:
-- network clock updates
+- network clock updates on load (takes a number of seconds)
 - code to run measurement unit on boot
 - server init
 
