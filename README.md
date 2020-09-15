@@ -33,3 +33,8 @@ This contains:
 - server init
 
 
+
+
+## Create a new database
+`python -m serverpi.db` and type `yes`
+
