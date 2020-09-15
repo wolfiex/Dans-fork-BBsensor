@@ -8,3 +8,4 @@ pip3 install db-sqlite3
 pip3 install cryptography
 
 pip3 install wifindme
+sudo apt-get install ntp

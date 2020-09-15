@@ -11,3 +11,30 @@ OPC R1 server scripts for Pi3
 
 ### server
 `bash setup/...install.sh`
+
+
+## link .rc_local to run on boot
+Open `sudo nano /etc/rc.local`
+and source the local rc file in this directory. 
+
+For testing this will likely be under `/home/pi/BBSensor/rc.local` but will eventually NEED to be changed to the `/root` folder when deployed permanently. 
+
+We add the lines:
+
+``` bash /home/pi/BBSensor/rc.local ```
+or 
+``` bash /root/BBSensor/rc.local ```
+
+### rc.local contents
+
+This contains:
+- network clock updates on load (takes a number of seconds)
+- code to run measurement unit on boot
+- server init
+
+
+
+
+## Create a new database
+`python -m serverpi.db` and type `yes`
+
