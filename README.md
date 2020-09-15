@@ -11,3 +11,13 @@ OPC R1 server scripts for Pi3
 
 ### server
 `bash setup/...install.sh`
+
+
+## link .bash_rc to the mainbashrc 
+
+This contains:
+- network clock updates
+- code to run measurement unit on boot
+- server init
+
+
