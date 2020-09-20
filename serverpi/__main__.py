@@ -17,10 +17,10 @@ SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 
 DATE = date.today().strftime("%d/%m/%Y")
 STOP = False
 TYPE=1# { 1 = static, 2 = dynamic, 3 = isolated_static}
-SAMPLE_LENGTH = 60 # in seconds
-SAMPLE_SLEEP = 60*(15-1) # in seconds
+SAMPLE_LENGTH = 10 # in seconds
 
-assert SAMPLE_SLEEP > 10
+# SAMPLE_SLEEP = 0#60*.5#(15-1) # in seconds
+#assert SAMPLE_SLEEP > 10
 
 
 ## lib imports
@@ -41,58 +41,64 @@ def interrupt(channel):
 GPIO.add_event_detect(21, GPIO.RISING, callback=interrupt, bouncetime=300)
 
 
-## open database
-
-
 '''
 rpi serial number as hostname
 '''
 
 def runcycle():
-    alpha.on()
-    time.sleep(SAMPLE_LENGTH-1)
-    now = datetime.utcnow()
-    #elapsed = (now-start).seconds
-    pm = R1.poll(alpha)
-    data = {'TIME':now.strftime("%H%M%S"),
-            'SP':float(pm['Sampling Period']),
-            'RC':int(pm['Reject count glitch']),
-            'PM1':float(pm['PM1']),
-            'PM3':float(pm['PM2.5']),
-            'PM10':float(pm['PM10']),
-            'LOC':scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8'))
-             }
+    '''
+    # data = {'TIME':now.strftime("%H%M%S"),
+    #         'SP':float(pm['Sampling Period']),
+    #         'RC':int(pm['Reject count glitch']),
+    #         'PM1':float(pm['PM1']),
+    #         'PM3':float(pm['PM2.5']),
+    #         'PM10':float(pm['PM10']),
+    #         'LOC':scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8'))
+    #          }
     # Date,Type, Serial
+
+    #(SERIAL,TYPE,d["TIME"],DATE,d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],)
+    '''
+
+    results = []
+    alpha.on()
+    for i in range(SAMPLE_LENGTH-1):
+        now = datetime.utcnow()
+
+        pm = R1.poll(alpha)
+
+        if float(pm['PM1'])+float(pm['PM10'])  > 0:
+            # if there are no results.
+            results.append( [SERIAL,TYPE,now.strftime("%H%M%S"),DATE,scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8')),float(pm['PM1']),float(pm['PM2.5']),float(pm['PM10']),float(pm['Sampling Period']),int(pm['Reject count glitch']),] )
+
+        if STOP:break
+        time.sleep(1) # keep as 1
 
     alpha.off()
     time.sleep(1)# Let the rpi turn off the fan
-    return data
-
-
+    return results
 
 '''
-Blast 10 seconds to clean
-then sample for x seconds
-and sleep for y
+MAIN
 '''
-
 
 
 print('starting')
 
 R1.clean(alpha)
 while True:
-
     #update less frequenty in loop
     DATE = date.today().strftime("%d/%m/%Y")
-
     d = runcycle()
-    print(d)
 
-    db.conn.execute("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,DATE,LOC,PM1,PM3,PM10,SP,RC) \
-          VALUES (?,?,?,?,?,?,?,?,?,?)",
-          (SERIAL,TYPE,d["TIME"],DATE,d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],));
+    db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,DATE,LOC,PM1,PM3,PM10,SP,RC) \
+          VALUES (?,?,?,?,?,?,?,?,?,?)", d );
+
+    db.conn.commit() # dont forget to commit!
+    if STOP:break
 
 
-    if STOP: break
-    time.sleep(SAMPLE_SLEEP)
+
+print('exiting- STOP:',STOP)
+db.conn.commit()
+db.conn.close()
