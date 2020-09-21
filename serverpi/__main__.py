@@ -13,6 +13,7 @@ import time,sys,os
 from datetime import date,datetime
 
 ## runtime constants
+DEBUG = True
 SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
 DATE = date.today().strftime("%d/%m/%Y")
 STOP = False
@@ -59,6 +60,7 @@ def runcycle():
 
     #(SERIAL,TYPE,d["TIME"],DATE,d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],)
     '''
+    
 
     results = []
     alpha.on()
@@ -66,6 +68,8 @@ def runcycle():
         now = datetime.utcnow()
 
         pm = R1.poll(alpha)
+        
+        if DEBUG: print(pm)
 
         if float(pm['PM1'])+float(pm['PM10'])  > 0:
             # if there are no results.
