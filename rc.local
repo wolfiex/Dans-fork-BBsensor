@@ -16,6 +16,6 @@ sudo ntpd -q -g >> /root/time.log
 
 #cd /home/pi/BBSensor && sudo python3 -c 'import opczero;opczero.run()'  >> /root/sensor.log &
 
-
+#echo 'bbsensor00' | sudo tee  /etc/hostname
 
 exit 0
