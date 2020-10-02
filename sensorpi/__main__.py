@@ -126,7 +126,7 @@ def runcycle():
     start = time.time()
     while time.time()-start < SAMPLE_LENGTH:
         # now = datetime.utcnow()now.strftime("%H%M%S")
-        print(time.time()-start , SAMPLE_LENGTH)
+        #print(time.time()-start , SAMPLE_LENGTH)
 
         pm = R1.poll(alpha)
         
