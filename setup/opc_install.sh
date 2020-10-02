@@ -12,7 +12,7 @@ sudo apt-get install -y python3-ipython;
 sudo apt-get install -y screen;
 
 
-git submodule update --init --recursive;
+cd ../ && git submodule update --init --recursive;
 pip3 install pyusbiss;
 pip3 install git+https://github.com/doceme/py-spidev.git;
 
