@@ -237,3 +237,4 @@ while True:
 print('exiting- STOP:',STOP)
 db.conn.commit()
 db.conn.close()
+power.ledon()
