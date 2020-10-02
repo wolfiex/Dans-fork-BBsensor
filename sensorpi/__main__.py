@@ -218,9 +218,12 @@ while True:
         SAMPLE_LENGTH = SAMPLE_LENGTH_slow
         
         # sleep for 18 minutes - check break statement every minute
+        
+        # gps poweroff
         for i in range(18):
             time.sleep(60)
             if STOP:break
+            # if i == 17: gps.init()
                 
         TYPE = 4
     else: 
