@@ -23,7 +23,11 @@ pip3 install cryptography;
 
 pip3 install wifindme --yes;
 sudo apt-get install ntp --yes ;
-sudo pip3 install Adafruit_DHT;
+sudo timedatectl set-ntp true
+pip3 install Adafruit_DHT;
+pip3 uninstall numpy -y;
+sudo apt-get install python3-numpy --yes ;
+pip3 install pandas;
 
 
 #/dev/ttyS0 is owned by the user root and the group dialout, so to be able to acesss the serial device, I would add myself to the dialout group:
@@ -31,5 +35,6 @@ sudo pip3 install Adafruit_DHT;
 sudo usermod -a -G tty $USER ;
 sudo chmod 666 /dev/ttyS0 ; 
 
-sudo apt autoremove
+sudo apt autoremove -y;
 echo 'finished'
+sudo reboot;

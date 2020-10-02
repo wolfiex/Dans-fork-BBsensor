@@ -1,6 +1,14 @@
 '''
 Get GPS values from usb
+
+
+If using usb set gpio = False
+
+
+
+screen /dev/ttyS0 9600
 '''
+
 import RPi.GPIO as GPIO
 from threading import Thread,Lock
 lock = Lock()
@@ -32,7 +40,8 @@ __all__ = 'last ser gpio connect bg_poll latlon'.split()
 def connect():
     global ser,gpio
     if gpio:
-        ser = serial.Serial('/dev/ttyS0',9600)
+        ser = serial.Serial('/dev/ttyS0')#,9600)
+        print('GPIO GPS on /dev/ttyS0')
     else:   
         for i in range(10):
             try:# each unplug registers as a new number, we dont expect more than 10 unplugs without a restart
@@ -43,6 +52,8 @@ def connect():
                 print( 'Connected serial on /dev/ttyACM%d'%i)
                 break
             except:continue
+    ser.flushInput()
+    ser.flushOutput()
 
 
 def bg_poll(ser,lock):
@@ -88,6 +99,7 @@ def init():
         time.sleep(4)
 
     while last['gpstime'] == '':
+        print(last)
         print('GPS Connected, but not reading a result - please check volatge')
         time.sleep(4)
 

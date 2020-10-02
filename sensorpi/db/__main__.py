@@ -32,9 +32,10 @@ CREATE TABLE MEASUREMENTS
           PM1          REAL        NOT NULL,
           PM3          REAL        NOT NULL,
           PM10         REAL        NOT NULL,
+          T            REAL        NOT NULL,
+          RH           REAL        NOT NULL,
           SP           REAL        NOT NULL,
-          RC           INT        NOT NULL,
-          NSAT         INT
+          RC           INT         NOT NULL
 );
 ''')
 

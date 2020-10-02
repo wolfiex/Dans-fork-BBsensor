@@ -60,6 +60,8 @@ def onexit():
     try:db.conn.commit()
     except db.sqlite3.ProgrammingError: None
     db.conn.close()
+    from . import power
+    power.ledon()
 
 import atexit
 atexit.register(onexit)
