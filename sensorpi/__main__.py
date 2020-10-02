@@ -216,7 +216,12 @@ while True:
                 LAST_SAVE = DATE
 
         SAMPLE_LENGTH = SAMPLE_LENGTH_slow
-        time.sleep(60*18)
+        
+        # sleep for 18 minutes - check break statement every minute
+        for i in range(18):
+            time.sleep(60)
+            if STOP:break
+                
         TYPE = 4
     else: 
         ''' en route '''
