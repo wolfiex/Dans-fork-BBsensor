@@ -179,11 +179,11 @@ while True:
     db.conn.commit() # dont forget to commit!
     
     
-    if DEBUG:
+    #if DEBUG:
             # if bserial : os.system("screen -S ble -X stuff 'sudo echo \"%s\" > /dev/rfcomm1 ^M' " %'_'.join([str(i) for i in d[-1]]))
             
             # print('data',d)
-            print(d[-1][2:3])
+    #             print(d[-1][2:3])
             
     power.ledon()
     
