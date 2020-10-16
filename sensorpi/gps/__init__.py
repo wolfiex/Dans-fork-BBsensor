@@ -16,7 +16,7 @@ import serial,time
 
 last = {'gpstime':None}
 ser = None
-gpio = True
+gpio = False#True
 pin = 23#18 # BCM 12 / GPIO 18
 
 GPIO.setwarnings(False)
