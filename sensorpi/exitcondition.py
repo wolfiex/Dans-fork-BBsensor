@@ -62,6 +62,10 @@ def onexit():
     except db.sqlite3.ProgrammingError: None
     try:db.conn.close()
     except:None
+    try:
+        from . import gps
+        gps.pinoff()
+    except:None
     from . import power
     power.ledon()
 
