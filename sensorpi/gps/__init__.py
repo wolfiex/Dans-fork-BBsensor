@@ -17,6 +17,7 @@ import serial,time
 last = {'gpstime':None}
 ser = None
 gpio = False#True
+print('GPIO GPS:',gpio)
 pin = 23#18 # BCM 12 / GPIO 18
 
 GPIO.setwarnings(False)
@@ -31,7 +32,7 @@ def pinoff():
     time.sleep(1)
     
 pinoff()    
-pinon()
+if gpio: pinon()
 
 
 
