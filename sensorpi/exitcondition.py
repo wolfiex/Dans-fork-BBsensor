@@ -2,7 +2,7 @@
 Ensure we can do a controlled exit when pressing ctrl+c
 '''
 ### Failure on exit params
-import sys,time
+import sys,time,datetime
 
 import RPi.GPIO as GPIO
 
@@ -52,7 +52,8 @@ def onexit():
     else:
         print("natural death")
 
-    print('Attempting to exit in a controlled Manner \n')
+    print('Attempting to exit in a controlled Manner \n',datetime.now().'\n')
+    
 
     from .import R1
     R1.alpha.off()
