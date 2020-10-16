@@ -106,6 +106,7 @@ def init():
 
 
     print('GPS connected')
+    print(last)
     return loc
 
 
