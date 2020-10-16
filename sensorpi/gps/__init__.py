@@ -102,7 +102,12 @@ def init():
         print(last)
         print('GPS Connected, but not reading a result - please check volatge')
         time.sleep(4)
-
+    
+    while len(last['gpstime']) !=6 :
+        print(last)
+        print('GPS Connected, but not correct')
+        time.sleep(1)
+        
 
 
     print('GPS connected')
