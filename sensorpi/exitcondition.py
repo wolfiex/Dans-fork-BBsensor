@@ -52,7 +52,7 @@ def onexit():
     else:
         print("natural death")
 
-    print('Attempting to exit in a controlled Manner \n',datetime.now(),'\n')
+    print('Attempting to exit in a controlled Manner \n',datetime.datetime.now(),'\n')
     
 
     from .import R1
