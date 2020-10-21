@@ -28,7 +28,7 @@ LAST_SAVE = None
 DHT_module = False
 
 SAMPLE_LENGTH_slow = 60*5
-SAMPLE_LENGTH_fast = 60*2 # in seconds
+SAMPLE_LENGTH_fast = 60*1 # in seconds
 SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 # assert SAMPLE_LENGTH > 10
 
@@ -249,7 +249,7 @@ while True:
 
         # check if we are trying to stop the device every minute
         for i in range(12):
-            time.sleep(5) #12 sets of 5 min
+            time.sleep(5*60) #12 sets of 5 min
             if STOP:break
 
         TYPE = 4
