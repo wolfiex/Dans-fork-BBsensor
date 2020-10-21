@@ -15,13 +15,13 @@ fi
 
 sudo rfkill block bluetooth;
 
-sudo timedatectl;
+sudo timedatectl >> /root/git.log;
 
 LOC='/root/BBSensor'
 
-cd $LOC && git pull >> /root/git.log
+cd $LOC && git pull >> /root/git.log;
 
-cd $LOC && sudo python3 -m sensorpi >> /root/sensor.log
+cd $LOC && sudo python3 -m sensorpi >> /root/sensor.log;
 
 
 
