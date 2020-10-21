@@ -88,7 +88,7 @@ def interrupt(channel):
 
 GPIO.add_event_detect(21, GPIO.RISING, callback=interrupt, bouncetime=300)
 
-
+print('########################################################')
 print('starting',datetime.now())
 R1.clean(alpha)
 
