@@ -205,6 +205,7 @@ while True:
         ''' hometime - SLEEP '''
         if DEBUG: print('NightSleep')
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
+        power.ledon()
         SAMPLE_LENGTH = -1 # Dont run !  SAMPLE_LENGTH_slow
         time.sleep(60*60) # sleep 1h
         TYPE = 4
