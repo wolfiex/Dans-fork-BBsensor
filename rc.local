@@ -13,12 +13,13 @@ fi
 #sudo systemctl stop ntp;
 #sudo ntpd -q -g >> /root/time.log
 
+sudo rfkill block bluetooth;
 
 sudo timedatectl;
 
 LOC='/root/BBSensor'
 
-cd $LOC && git pull ; 
+cd $LOC && git pull ;
 
 cd $LOC && sudo python3 -m sensorpi >> /root/sensor.log
 

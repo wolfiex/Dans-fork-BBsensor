@@ -27,7 +27,6 @@ CREATE TABLE MEASUREMENTS
           SERIAL       CHAR(16)    NOT NULL,
           TYPE         INT         NOT NULL,
           TIME         CHAR(6)     NOT NULL,
-          DATE         CHAR(8)     NOT NULL,
           LOC          BLOB        NOT NULL,
           PM1          REAL        NOT NULL,
           PM3          REAL        NOT NULL,
@@ -35,7 +34,8 @@ CREATE TABLE MEASUREMENTS
           T            REAL        NOT NULL,
           RH           REAL        NOT NULL,
           SP           REAL        NOT NULL,
-          RC           INT         NOT NULL
+          RC           INT         NOT NULL,
+          UNIXTIME     INT         NOT NULL
 );
 ''')
 
@@ -51,7 +51,7 @@ CREATE TABLE PUSH
 
 conn.commit()
 conn.close()
-print('A new database has now been created')
+print('A new database has now been created at ',__RDIR__)
 
  #
  # [str(i) for i in (location['gpstime'],location['lat'],location['lon'],location['alt'],int(location['nsat']),location['PM1'],location['PM2.5'],location['PM10'])]

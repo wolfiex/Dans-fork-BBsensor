@@ -10,7 +10,7 @@ screen /dev/ttyS0 9600
 '''
 
 import RPi.GPIO as GPIO
-from threading import Thread,Lock
+from threading import Thread,Lock,Event
 lock = Lock()
 import serial,time
 
@@ -19,6 +19,8 @@ ser = None
 gpio = False#True
 print('GPIO GPS:',gpio)
 pin = 23#18 # BCM 12 / GPIO 18
+
+stop_event = Event()
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -30,8 +32,8 @@ def pinon():
 def pinoff():
     GPIO.setup(pin, GPIO.IN)
     time.sleep(1)
-    
-pinoff()    
+
+pinoff()
 if gpio: pinon()
 
 
@@ -43,7 +45,7 @@ def connect():
     if gpio:
         ser = serial.Serial('/dev/ttyS0')#,9600)
         print('GPIO GPS on /dev/ttyS0')
-    else:   
+    else:
         for i in range(10):
             try:# each unplug registers as a new number, we dont expect more than 10 unplugs without a restart
                 #try:ser = serial.Serial('/dev/ttyAMA%d'%i)
@@ -57,62 +59,65 @@ def connect():
     ser.flushOutput()
 
 
-def bg_poll(ser,lock):
-        global last
+def bg_poll(ser,lock,stop_event):
+        global last,stopThread
         #ignored values to be named utc
         params = 'utc gpstime lat utc lon utc fix nsat HDOP alt utc WGS84 utc lastDGPS utc utc'.split()
-        while True:
+        while not stop_event.is_set():
                 try:
                     line = str(ser.readline())
-                    
+
                 except serial.SerialException:
                     print('lost connection - reconnecting')
                     #last = {}
                     connect()
                     time.sleep(5)
                     continue
-                    
-                if line.find('GGA') > 0: 
+
+                if line.find('GGA') > 0:
                     lock.acquire()
                     last = dict(zip(params,line.split(',')))
                     lock.release()
                     #print(last)
-                    
-                                    
+
+
+
 def latlon():
     global last
     if last['lat']=='' or last['lon']=='':
         return [0,0]
-    else: 
+    else:
         return [float(last['lat']),float(last['lon'])]
 
 
-def init():
+def init(wait = False):
+
+
     connect()
     print('############# GPS daemon ############')
+    stop_event.clear()
 
-    loc = Thread(target=bg_poll, args=(ser,lock), name='location_daemon')
-    loc.setDaemon(True)#bg
-    loc.start()
+    daemon = Thread(target=bg_poll, args=(ser,lock,stop_event), name='location_daemon')
+    daemon.setDaemon(True)#bg
+    daemon.start()
 
-    while last == {'gpstime':None}:
-        print('waiting for gps result')
-        time.sleep(4)
+    if wait:
+        while last == {'gpstime':None}:
+            print('waiting for gps result')
+            time.sleep(4)
 
-    while last['gpstime'] == '':
-        print(last)
-        print('GPS Connected, but not reading a result - please check volatge')
-        time.sleep(4)
-    
-    while len(last['gpstime']) !=6 :
-        print(last)
-        print('GPS Connected, but not correct')
-        time.sleep(1)
-        
+        while last['gpstime'] == '':
+            print(last)
+            print('GPS Connected, but not reading a result - please check volatge')
+            time.sleep(4)
+
+        while len(last['gpstime']) !=6 :
+            print(last)
+            print('GPS Connected, but not correct')
+            time.sleep(1)
+
 
 
     print('GPS connected')
     print(last)
-    return loc
-
-
+    return daemon
