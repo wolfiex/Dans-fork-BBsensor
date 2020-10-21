@@ -88,6 +88,10 @@ def interrupt(channel):
 
 GPIO.add_event_detect(21, GPIO.RISING, callback=interrupt, bouncetime=300)
 
+
+print('starting',datetime.now())
+R1.clean(alpha)
+
 while loading.isAlive():
     if DEBUG: print('stopping loading blink ...')
     power.stopblink(loading)
@@ -160,11 +164,6 @@ def runcycle():
 '''
 MAIN
 '''
-
-
-print('starting',datetime.now())
-
-R1.clean(alpha)
 
 ########################################################
 ## Run Loop
