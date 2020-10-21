@@ -19,7 +19,7 @@ import time,sys,os
 from datetime import date,datetime,timezone
 
 ## runtime constants
-DEBUG  = False
+DEBUG  = True
 SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
 DATE   = date.today().strftime("%d/%m/%Y")
 STOP   = False
