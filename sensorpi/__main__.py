@@ -177,7 +177,7 @@ while True:
 
         ## run cycle
         d = runcycle()
-        if DEBUG:print(d[-1])
+        #if DEBUG:print(d[-1])
 
         ''' add to db'''
         db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,SP,RC,UNIXTIME) \
@@ -227,7 +227,7 @@ while True:
                 upload.sync()
 
                 ## update time!
-                os.system('sudo timedatectl')
+                os.system('sudo timedatectl &')
 
                 ## run git pull
                 #################
