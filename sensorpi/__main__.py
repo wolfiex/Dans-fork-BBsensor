@@ -32,9 +32,9 @@ SAMPLE_LENGTH_fast = 60*1 # in seconds
 SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 # assert SAMPLE_LENGTH > 10
 
-### hours (inclusive)
-NIGHT = ['19','07']
-SCHOOL = ['10','15']
+### hours (not inclusive)
+NIGHT = ['18','07'] # stop 7-7
+SCHOOL = ['9','15'] # stop 10 -2 
 
 ########################################################
 ## Bluetooth setup
