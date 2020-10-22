@@ -85,8 +85,8 @@ If you need different channels then you have to use an additional USB/WiFi dongl
 ```
 rpi ~# cat > /etc/hostapd/hostapd.conf <<EOF
 driver=nl80211
-ssid=RPiNet
-country_code=DE
+ssid=BiBServer_id
+country_code=GB
 hw_mode=g
 channel=1
 auth_algs=1
