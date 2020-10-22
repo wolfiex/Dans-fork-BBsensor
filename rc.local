@@ -13,7 +13,7 @@ fi
 #sudo systemctl stop ntp;
 #sudo ntpd -q -g >> /root/time.log
 
-sudo rfkill block bluetooth;
+sudo rfkill block bluetooth &;
 
 sudo timedatectl >> /root/git.log;
 
