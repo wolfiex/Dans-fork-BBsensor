@@ -19,12 +19,19 @@ DATE = date.today().strftime("%d/%m/%Y")
 STOP = False
 TYPE=1# { 1 = static, 2 = dynamic, 3 = isolated_static}
 SAMPLE_LENGTH = 10 # in seconds
+LAST_SAVE = None
+DHT_module = False
 
 # SAMPLE_SLEEP = 0#60*.5#(15-1) # in seconds
 #assert SAMPLE_SLEEP > 10
 
+### hours (not inclusive)
+NIGHT = ['18','07'] # upload 7-7
 
-## lib imports
+########################################################
+## Lib Imports
+########################################################
+
 from .tests import pyvers
 from .geolocate import lat,lon,alt
 from . import R1
@@ -33,6 +40,9 @@ alpha = R1.alpha
 from .exitcondition import GPIO
 from .crypt import scramble
 from . import db
+from . import upload
+if DHT_module: from . import DHT
+
 
 def interrupt(channel):
     print ("Pull Down on GPIO 21 detected: exiting program")
@@ -41,10 +51,17 @@ def interrupt(channel):
 
 GPIO.add_event_detect(21, GPIO.RISING, callback=interrupt, bouncetime=300)
 
+print('########################################################')
+print('starting',datetime.now())
+R1.clean(alpha)
 
 '''
 rpi serial number as hostname
 '''
+
+########################################################
+## Main Loop
+########################################################
 
 def runcycle():
     '''
@@ -55,12 +72,14 @@ def runcycle():
     #         'PM3':float(pm['PM2.5']),
     #         'PM10':float(pm['PM10']),
     #         'LOC':scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8'))
+    #         'UNIXTIME': int(unixtime)
     #          }
     # Date,Type, Serial
 
     #(SERIAL,TYPE,d["TIME"],DATE,d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],)
     '''
 
+    global SAMPLE_LENGTH
 
     results = []
     alpha.on()
@@ -72,8 +91,14 @@ def runcycle():
         if DEBUG: print(pm)
 
         if float(pm['PM1'])+float(pm['PM10'])  > 0:
-            # if there are no results.
-            results.append( [SERIAL,TYPE,now.strftime("%H%M%S"),DATE,scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8')),float(pm['PM1']),float(pm['PM2.5']),float(pm['PM10']),float(pm['Sampling Period']),int(pm['Reject count glitch']),] )
+            # if there are results.
+
+            if DHT_module: rh,temp = DHT.read()
+            else:
+                temp = pm['Temperature']
+                rh   = pm[  'Humidity' ]
+
+            results.append( [SERIAL,TYPE,now.strftime("%H%M%S"),DATE,scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8')),float(pm['PM1']),float(pm['PM2.5']),float(pm['PM10']),float(temp),float(rh),float(pm['Sampling Period']),int(pm['Reject count glitch']),now.strftime("%s"),] )
 
         if STOP:break
         time.sleep(1) # keep as 1
@@ -82,25 +107,51 @@ def runcycle():
     time.sleep(1)# Let the rpi turn off the fan
     return results
 
+
+########################################################
+########################################################
+
+
 '''
 MAIN
 '''
 
+########################################################
+## Run Loop
+########################################################
 
-print('starting')
-
-R1.clean(alpha)
 while True:
     #update less frequenty in loop
-    DATE = date.today().strftime("%d/%m/%Y")
+    #DATE = date.today().strftime("%d/%m/%Y")
     d = runcycle()
 
-    db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,DATE,LOC,PM1,PM3,PM10,SP,RC) \
-          VALUES (?,?,?,?,?,?,?,?,?,?)", d );
+    db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,SP,RC,UNIXTIME) \
+              VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", d );
 
     db.conn.commit() # dont forget to commit!
+
     if STOP:break
 
+    hour = '%02d'%datetime.now().hour#gps.last.copy()['gpstime'][:2]
+
+    if hour > NIGHT[0] or hour < NIGHT[1]:
+
+        if DATE != LAST_SAVE:
+            if upload.online():
+                #check if connected to wifi
+                ## SYNC
+                upload.sync()
+
+                ## update time!
+                os.system('sudo timedatectl &')
+
+                ## run git pull
+                #################
+
+                #################
+
+                print('upload complete', DATE, hour)
+                LAST_SAVE = DATE
 
 
 print('exiting- STOP:',STOP)
