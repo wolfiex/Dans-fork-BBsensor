@@ -2,7 +2,7 @@
 SERVERPI LIBRARY
 
 D.Ellis CEMAC
-C.Symmonnds CEMAC
+C.Symonds CEMAC
 K.Pringle UOL
 J.McQuaid UOL
 
@@ -60,7 +60,7 @@ def runcycle():
 
     #(SERIAL,TYPE,d["TIME"],DATE,d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],)
     '''
-    
+
 
     results = []
     alpha.on()
@@ -68,7 +68,7 @@ def runcycle():
         now = datetime.utcnow()
 
         pm = R1.poll(alpha)
-        
+
         if DEBUG: print(pm)
 
         if float(pm['PM1'])+float(pm['PM10'])  > 0:
