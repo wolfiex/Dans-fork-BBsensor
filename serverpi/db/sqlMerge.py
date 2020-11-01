@@ -54,6 +54,8 @@ class sqlMerge(object):
     
     def mergelist(self, file_a, merge_list):
         
+        from datetime import datetime
+        
         try:
             assert type(merge_list) == list
         except (AssertionError):
@@ -84,8 +86,65 @@ class sqlMerge(object):
                 raise
             
             self.merge(file_a, file)
+            
+        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
         
-"""
+        uploadfile = '.'.join(file_a.split('.')[:-1])+timestamp+'.'+file_a.split('.')[-1] # filename with timestamp added, preserving all . characters       
+
+        self.upload_db(file_a,'bib-pilot-bucket',os.path.split(uploadfile)[1])
+    
+    def upload_db(self, file_name, bucket, object_name=None):
+        
+        import boto3
+        import logging
+        from botocore.exceptions import ClientError
+        
+        """Upload a file to an S3 bucket
+
+            :param file_name: File to upload
+            :param bucket: Bucket to upload to
+            :param object_name: S3 object name. If not specified then file_name is used
+            :return: True if file was uploaded, else False
+        """
+        
+        # If S3 object_name was not specified, use file_name
+        if object_name is None:
+            object_name = file_name
+
+        # Upload the file
+        s3_client = boto3.client('s3')
+        try:
+            response = s3_client.upload_file(file_name, bucket, object_name)
+        except ClientError as e:
+            logging.error(e)
+            return False
+        return True
+
+    # Sharepoint upload - requires uname and password in plain text
+    #
+    #def upload (self, file_a, username, password):
+    #
+    #    from office365.runtime.auth.authentication_context import AuthenticationContext
+    #    from office365.sharepoint.client_context import ClientContext   
+    #    from datetime import datetime
+    #
+    #    baseurl = 'https://leeds365.sharepoint.com'
+    #    basesite = '/sites/TEAM-SEEAQProjects'
+    #    siteurl = baseurl + basesite
+    #    localpath = file_a
+    #    timestamp=datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    #    remotepath = 'Shared%20Documents/db_files/server_{}.db'.format(timestamp)
+    #    ctx_auth = AuthenticationContext(siteurl)
+    #    ctx_auth.acquire_token_for_user(username, password)
+    #   ctx = ClientContext(siteurl, ctx_auth)
+    #    with open(localpath, 'rb') as content_file:
+    #        file_content = content_file.read()
+    #
+    #    dir, name = os.path.split(remotepath)
+    #    file = ctx.web.get_folder_by_server_relative_url(dir).upload_file(name, file_content).execute_query()            
+
+"""      
+
 
 # Test functions - not needed but retained for possible later testing
     
@@ -161,6 +220,8 @@ def buildnewtest():
     db_b.close()
     
     return (file_a,file_b)
+
+
 
 def main():
 
