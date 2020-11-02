@@ -19,10 +19,25 @@ def online():
     return int(os.popen(cmd).read())
 
 
+def readpassphrase(__RDIR__):
+
+    with open (os.path.join(__RDIR__,'.serverpi')) as f:
+        lines = f.readlines()
+        for line in lines:
+            if 'serverpi_access_key = ' in line:
+                private_key_pass = line[22:-1]
+
+    return private_key_pass
+
+
+
 def sync(SERIAL,conn):
+
+    import pysftp
 
     DATE = date.today().strftime("%d%m%Y")
     TIME = datetime.utcnow().strftime("%H%M%S")
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
 
     data = [(SERIAL,TIME,DATE,)]
 
@@ -30,6 +45,14 @@ def sync(SERIAL,conn):
 
     conn.commit()
 
-    
+    key_pass = readpassphrase(__RDIR__)
+
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+
+    private_key = "~/.ssh/id_rsa"  # can use password keyword in Connection instead
+
+    with pysftp.Connection(host="BBServer1-1.local", username="serverpi", private_key=private_key, private_key_pass=key_pass, cnopts=cnopts) as srv:
+        srv.put(localpath=file_path,remotepath='/home/serverpi/datastaging/sensor_'+SERIAL+timestamp+'.db')  # To download a file, replace put with get
 
     return True

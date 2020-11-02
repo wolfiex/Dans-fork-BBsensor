@@ -28,12 +28,12 @@ pip3 install Adafruit_DHT;
 pip3 uninstall numpy -y;
 sudo apt-get install python3-numpy --yes ;
 pip3 install pandas;
-
+pip3 install pysftp;
 
 #/dev/ttyS0 is owned by the user root and the group dialout, so to be able to acesss the serial device, I would add myself to the dialout group:
 
 sudo usermod -a -G tty $USER ;
-sudo chmod 666 /dev/ttyS0 ; 
+sudo chmod 666 /dev/ttyS0 ;
 
 sudo apt autoremove -y;
 echo 'finished'

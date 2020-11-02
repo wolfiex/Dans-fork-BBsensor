@@ -232,8 +232,6 @@ while True:
                     power.stopblink(loading)
                     loading.join(.1)
 
-
-
                 print('upload complete', DATE, hour)
                 LAST_SAVE = DATE
 
