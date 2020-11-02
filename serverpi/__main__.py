@@ -140,7 +140,7 @@ while True:
 
         if DATE != LAST_SAVE
 
-            stage_success = upload.stage()
+            stage_success = upload.stage(SERIAL, db.conn)
 
             if stage_success:
                 db.conn.execute("SELECT name FROM sqlite_master WHERE type='table';")

@@ -18,10 +18,19 @@ def online():
     return int(os.popen(cmd).read())
 
 
-def stage():
+def stage(SERIAL,conn):
 
     from shutil import copy2
-    from datetime import datetime
+    from datetime import datetime, date
+
+    DATE = date.today().strftime("%d%m%Y")
+    TIME = datetime.utcnow().strftime("%H%M%S")
+
+    data = [(SERIAL,TIME,DATE,)]
+
+    conn.executemany("INSERT INTO PUSH (SERIAL,TIME,DATE) VALUES(?, ?, ?);", data )
+
+    conn.commit()
 
     filename = '/server.db'
 
