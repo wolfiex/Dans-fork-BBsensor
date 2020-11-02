@@ -218,22 +218,33 @@ while True:
                 #check if connected to wifi
                 loading = power.blink_nonblock_inf()
                 ## SYNC
-                upload.sync(SERIAL,db.conn)
+                upload_success = upload.sync(SERIAL,db.conn)
 
-                ## update time!
-                os.system('sudo timedatectl &')
+                if upload_success:
+                    db.conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
+                    table_list=[]
+                    for table_item in cursor_a.fetchall():
+                        table_list.append(table_item[0])
 
-                ## run git pull
-                #################
+                    for table_name in table_list:
+                        db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
 
-                #################
+                    db.builddb(db.conn)
 
-                while loading.isAlive():
-                    power.stopblink(loading)
-                    loading.join(.1)
+                    ## update time!
+                    os.system('sudo timedatectl &')
 
-                print('upload complete', DATE, hour)
-                LAST_SAVE = DATE
+                    ## run git pull
+                    #################
+
+                    #################
+
+                    while loading.isAlive():
+                        power.stopblink(loading)
+                        loading.join(.1)
+
+                    print('upload complete', DATE, hour)
+                    LAST_SAVE = DATE
 
 
         SAMPLE_LENGTH = SAMPLE_LENGTH_slow
