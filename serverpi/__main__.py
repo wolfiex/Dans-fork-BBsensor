@@ -138,7 +138,7 @@ while True:
 
     if hour > SCHOOL[0] or hour < SCHOOL[1]:
 
-        if DATE != LAST_SAVE
+        if DATE != LAST_SAVE:
 
             stage_success = upload.stage(SERIAL, db.conn)
 
