@@ -34,7 +34,7 @@ SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 
 ### hours (not inclusive)
 NIGHT = ['18','07'] # stop 7-7
-SCHOOL = ['9','15'] # stop 10 -2 
+SCHOOL = ['9','15'] # stop 10 -2
 
 ########################################################
 ## Bluetooth setup
@@ -197,10 +197,6 @@ while True:
     hour = '%02d'%datetime.now().hour#gps.last.copy()['gpstime'][:2]
 
 
-
-
-
-
     if hour > NIGHT[0] or hour < NIGHT[1]:
         ''' hometime - SLEEP '''
         if DEBUG: print('NightSleep')
@@ -209,8 +205,6 @@ while True:
         SAMPLE_LENGTH = -1 # Dont run !  SAMPLE_LENGTH_slow
         time.sleep(60*60) # sleep 1h
         TYPE = 4
-
-
 
     elif hour > SCHOOL[0] and hour < SCHOOL[1]:
         if DEBUG: print('@ School')
@@ -224,7 +218,7 @@ while True:
                 #check if connected to wifi
                 loading = power.blink_nonblock_inf()
                 ## SYNC
-                upload.sync()
+                upload.sync(SERIAL,db.conn)
 
                 ## update time!
                 os.system('sudo timedatectl &')
