@@ -10,8 +10,16 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
+LOC='/home/serverpi'
+
 sudo systemctl stop ntp;
-sudo ntpd -q -g >> /root/time.log
+sudo ntpd -q -g >> ${LOC}/time.log
+
+sudo timedatectl >> ${LOC}/git.log;
+
+cd ${LOC}/BBSensor && git pull >> ${LOC}/git.log;
+
+cd ${LOC}/BBSensor && sudo python3 -m serverpi >> ${LOC}/server.log &
 
 
 #cd /home/pi/BBSensor && sudo python3 -c 'import opczero;opczero.run()'  >> /root/sensor.log &

@@ -91,9 +91,9 @@ class sqlMerge(object):
         
         uploadfile = '.'.join(file_a.split('.')[:-1])+timestamp+'.'+file_a.split('.')[-1] # filename with timestamp added, preserving all . characters       
 
-        self.upload_db(file_a,'bib-pilot-bucket',os.path.split(uploadfile)[1])
+        self.upload_s3(file_a,'bib-pilot-bucket',os.path.split(uploadfile)[1])
     
-    def upload_db(self, file_name, bucket, object_name=None):
+    def upload_s3(self, file_name, bucket, object_name=None):
         
         import boto3
         import logging
@@ -122,7 +122,7 @@ class sqlMerge(object):
 
     # Sharepoint upload - requires uname and password in plain text
     #
-    #def upload (self, file_a, username, password):
+    #def upload_sp (self, file_a, username, password):
     #
     #    from office365.runtime.auth.authentication_context import AuthenticationContext
     #    from office365.sharepoint.client_context import ClientContext   
@@ -142,97 +142,3 @@ class sqlMerge(object):
     #
     #    dir, name = os.path.split(remotepath)
     #    file = ctx.web.get_folder_by_server_relative_url(dir).upload_file(name, file_content).execute_query()            
-
-"""      
-
-
-# Test functions - not needed but retained for possible later testing
-    
-def buildnewtest():
-    
-    from shutil import copyfile
-    from datetime import date,datetime
-    
-    
-    filename1 = 'server.db'
-    filename2 = 'sensor.db'
-
-    # if we are root, write to root dir
-    user = os.popen('echo $USER').read().strip()
-
-
-    __RDIR__ = '/home/'+user
-    
-    file_a = os.path.join(__RDIR__,filename1)
-    file_b = os.path.join(__RDIR__,filename2)
-    
-    if os.path.exists(file_a):
-        os.remove(file_a)
-    
-    db_a = sqlite3.connect(file_a)
-    db_a.execute('''
-                 CREATE TABLE MEASUREMENTS
-                 (
-                     SERIAL       CHAR(16)    NOT NULL,
-                     TYPE         INT         NOT NULL,
-                     TIME         CHAR(6)     NOT NULL,
-                     DATE         CHAR(8)     NOT NULL,
-                     LOC          BLOB        NOT NULL,
-                     PM1          REAL        NOT NULL,
-                     PM3          REAL        NOT NULL,
-                     PM10         REAL        NOT NULL,
-                     SP           REAL        NOT NULL,
-                     RC           INT         NOT NULL,
-                     NSAT         INT         
-                     );
-                 ''')
-    db_a.execute('''
-                 CREATE TABLE PUSH
-                 (
-                     SERIAL       CHAR(16)    NOT NULL,
-                     TIME         CHAR(6)     NOT NULL,
-                     DATE         CHAR(8)     NOT NULL
-                     );
-                 ''')
-
-
-    db_a.commit()
-    db_a.close()
-    
-    copyfile(os.path.join(__RDIR__,'Downloads',filename1),file_b)
-    
-    DATE = date.today().strftime("%d%m%Y")
-    TIME = datetime.utcnow().strftime("%H%M%S")    
-    
-    db_b = sqlite3.connect(file_b)
-    
-    cursor_b = db_b.cursor()
-    
-    cursor_b.execute('SELECT SERIAL FROM MEASUREMENTS LIMIT 1')
-    
-    SERIAL = cursor_b.fetchall()[0][0]
-    
-    data = [(SERIAL,TIME,DATE,)]
-    
-    cursor_b.executemany("INSERT INTO PUSH (SERIAL,TIME,DATE) VALUES(?, ?, ?);", data )
-    
-    db_b.commit()
-    db_b.close()
-    
-    return (file_a,file_b)
-
-
-
-def main():
-
-    (file_a,file_b) = buildnewtest()
-    
-    merge=sqlMerge()
-
-    merge.merge(file_a, file_b)
-
-    return
-
-if __name__ == '__main__':
-    main()
-"""
