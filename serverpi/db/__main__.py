@@ -9,6 +9,7 @@ python -m serverpi.db + user input
 
 import os,sys,sqlite3
 from .__init__ import __RDIR__,filename,conn
+from builddb import builddb
 
 ## no accidental overwrites
 if 'new' not in sys.argv:
@@ -17,38 +18,12 @@ if 'new' not in sys.argv:
 
 #remove and create new
 conn.close()
-os.system('rm '+__RDIR__+filename)
+os.remove(os.path.join(__RDIR__,filename))
+
 conn = sqlite3.connect(__RDIR__+filename)
 
-#ID INTEGER PRIMARY KEY AUTOINCREMENT,
-conn.execute('''
-CREATE TABLE MEASUREMENTS
-         (
-          SERIAL       CHAR(16)    NOT NULL,
-          TYPE         INT         NOT NULL,
-          TIME         CHAR(6)     NOT NULL,
-          LOC          BLOB        NOT NULL,
-          PM1          REAL        NOT NULL,
-          PM3          REAL        NOT NULL,
-          PM10         REAL        NOT NULL,
-          T            REAL        NOT NULL,
-          RH           REAL        NOT NULL,
-          SP           REAL        NOT NULL,
-          RC           INT         NOT NULL,
-          UNIXTIME     INT         NOT NULL);
-''')
+builddb(conn)
 
-conn.execute('''
-CREATE TABLE PUSH
-         (
-          SERIAL       CHAR(16)    NOT NULL,
-          TIME         CHAR(6)     NOT NULL,
-          DATE         CHAR(8)     NOT NULL
-);
-''')
-
-
-conn.commit()
 conn.close()
 print('A new database has now been created')
 

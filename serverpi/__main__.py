@@ -20,13 +20,15 @@ STOP = False
 TYPE=1# { 1 = static, 2 = dynamic, 3 = isolated_static}
 SAMPLE_LENGTH = 10 # in seconds
 LAST_SAVE = None
+LAST_UPLOAD = None
 DHT_module = False
 
 # SAMPLE_SLEEP = 0#60*.5#(15-1) # in seconds
 #assert SAMPLE_SLEEP > 10
 
 ### hours (not inclusive)
-NIGHT = ['18','07'] # upload 7-7
+SCHOOL = ['9','15'] # stage db during school hours
+NIGHT = ['18','07'] # upload centrally on evening
 
 ########################################################
 ## Lib Imports
@@ -132,11 +134,31 @@ while True:
 
     if STOP:break
 
-    hour = '%02d'%datetime.now().hour#gps.last.copy()['gpstime'][:2]
+    hour = '%02d'%datetime.now().hour
+
+    if hour > SCHOOL[0] or hour < SCHOOL[1]:
+
+        if DATE != LAST_SAVE
+
+            stage_success = upload.stage()
+
+            if stage_success:
+                db.conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
+                table_list=[]
+                for table_item in cursor_a.fetchall():
+                    table_list.append(table_item[0])
+
+                for table_name in table_list:
+                    db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
+
+                db.builddb(db.conn)
+
+                print('staging complete', DATE, hour)
+                LAST_SAVE = DATE
 
     if hour > NIGHT[0] or hour < NIGHT[1]:
 
-        if DATE != LAST_SAVE:
+        if DATE != LAST_UPLOAD:
             if upload.online():
                 #check if connected to wifi
                 ## SYNC
@@ -151,8 +173,7 @@ while True:
                 #################
 
                 print('upload complete', DATE, hour)
-                LAST_SAVE = DATE
-
+                LAST_UPLOAD = DATE
 
 print('exiting- STOP:',STOP)
 db.conn.commit()

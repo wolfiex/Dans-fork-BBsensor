@@ -18,8 +18,51 @@ def online():
     return int(os.popen(cmd).read())
 
 
+def stage():
+
+    from shutil import copy2
+    from datetime import datetime
+
+    filename = '/server.db'
+
+    # if we are root, write to root dir
+    user = os.popen('echo $USER').read().strip()
+
+    if user == 'root': __RDIR__ = '/root'
+    else: __RDIR__ = '/home/'+user
+
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+
+    uploadfile = '.'.join(filename.split('.')[:-1])+timestamp+'.'+filename.split('.')[-1]
+
+    try:
+        copy2(os.path.join(__RDIR__,filename),os.path.join('/home/serverpi/datastaging',uploadfile))
+    except:
+        print ('Error copying server.db file to staging area')
+        return False
+
+    return True
 
 def sync():
 
-    # so something
+    from serverpi.db import sqlMerge
+    from glob import glob
+
+    merge=sqlMerge.sqlMerge()
+
+    dataloc = '/home/serverpi/datastaging'
+
+    sensorfiles = glob(os.path.join(dataloc,'sensor*.db')
+
+    serverfiles = glob(os.path.join(dataloc,'server*.db')
+
+    if len (serverfiles > 1):
+        sensorfiles.append(serverfiles[1:])
+    elif len (serverfiles < 1):
+        print ("Could not find server.db file for merge")
+        return False
+
+    #Merge the various DB and upload to AWS
+    merge.mergelist(serverfiles[0], sensorfiles)
+
     return True
