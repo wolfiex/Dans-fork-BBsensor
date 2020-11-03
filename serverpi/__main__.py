@@ -141,8 +141,6 @@ while True:
     #DATE = date.today().strftime("%d/%m/%Y")
     d = runcycle()
 
-    cursor = db.conn.cursor()
-
     db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,SP,RC,UNIXTIME) \
               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", d );
 

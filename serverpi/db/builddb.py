@@ -4,16 +4,6 @@ def builddb(conn):
 
     cursor = conn.cursor()
 
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-
-    table_counter = 0
-    print("SQL Tables available before rebuild: \n===================================================\n")
-    for table_item in cursor.fetchall():
-        current_table = table_item[0]
-        table_counter += 1
-        print("-> " + current_table)
-    print("\n===================================================\n")
-
     #ID INTEGER PRIMARY KEY AUTOINCREMENT,
     conn.execute('''
                  CREATE TABLE MEASUREMENTS
