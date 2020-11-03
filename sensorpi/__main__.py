@@ -74,6 +74,7 @@ loading = power.blink_nonblock_inf()
 
 from .crypt import scramble
 from . import db
+from .db import builddb
 from . import upload
 if DHT_module: from . import DHT
 from . import gps
@@ -229,7 +230,7 @@ while True:
                     for table_name in table_list:
                         db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
 
-                    db.builddb(db.conn)
+                    builddb.builddb(db.conn)
 
                     ## update time!
                     os.system('sudo timedatectl &')
