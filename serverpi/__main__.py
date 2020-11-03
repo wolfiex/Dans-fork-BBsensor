@@ -100,7 +100,20 @@ def runcycle():
                 temp = pm['Temperature']
                 rh   = pm[  'Humidity' ]
 
-            results.append( [SERIAL,TYPE,now.strftime("%H%M%S"),DATE,scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8')),float(pm['PM1']),float(pm['PM2.5']),float(pm['PM10']),float(temp),float(rh),float(pm['Sampling Period']),int(pm['Reject count glitch']),now.strftime("%s"),] )
+            results.append( [
+                SERIAL,
+                TYPE,
+                now.strftime("%H%M%S"),
+                scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8')),
+                float(pm['PM1']),
+                float(pm['PM2.5']),
+                float(pm['PM10']),
+                float(temp),
+                float(rh),
+                float(pm['Sampling Period']),
+                int(pm['Reject count glitch']),
+                now.strftime("%s"),
+            ] )
 
         if STOP:break
         time.sleep(1) # keep as 1
