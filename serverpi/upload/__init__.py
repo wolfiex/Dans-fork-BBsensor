@@ -66,7 +66,8 @@ def sync():
     serverfiles = glob(os.path.join(dataloc,'server*.db'))
 
     if len (serverfiles) > 1:
-        sensorfiles.append(serverfiles[1:])
+        for file in serverfiles[1:]:
+            sensorfiles.append(file)
     elif len (serverfiles) < 1:
         print ("Could not find server.db file for merge")
         return False
