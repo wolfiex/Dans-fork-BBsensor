@@ -71,6 +71,9 @@ def sync():
         print ("Could not find server.db file for merge")
         return False
 
+    print (serverfiles[0])
+    print (sensorfiles)
+
     #Merge the various DB and upload to AWS
     merge.mergelist(serverfiles[0], sensorfiles)
 
