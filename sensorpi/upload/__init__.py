@@ -60,7 +60,15 @@ def sync(SERIAL,conn):
 
     private_key = os.path.join(__RDIR__,".ssh/id_rsa")  # can use password keyword in Connection instead
 
-    with pysftp.Connection(host="BBServer1-1.local", username="serverpi", private_key=private_key, private_key_pass=key_pass, cnopts=cnopts) as srv:
-        srv.put(localpath=file_path,remotepath='/home/serverpi/datastaging/sensor_'+SERIAL+timestamp+'.db')  # To download a file, replace put with get
+    for i in range (10):
+        try:
+            with pysftp.Connection(host="BBServer1-1.local", username="serverpi", private_key=private_key, private_key_pass=key_pass, cnopts=cnopts) as srv:
+                srv.put(localpath=file_path,remotepath='/home/serverpi/datastaging/sensor_'+SERIAL+timestamp+'.db')  # To download a file, replace put with get
+        except:
+            if i < 9:
+                print ('Upload failed - attempt {} of 10\nRetrying'.format(i+1))
+                continue
+            else:
+                return False
 
     return True
