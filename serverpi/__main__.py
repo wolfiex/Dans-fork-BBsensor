@@ -153,7 +153,9 @@ while True:
 
         if DATE != LAST_SAVE:
 
+            print ('Staging data')
             stage_success = upload.stage(SERIAL, db.conn)
+            print ('Stage success = ', stage_success)
 
             if stage_success:
                 cursor=db.conn.cursor()
