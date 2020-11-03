@@ -7,7 +7,7 @@ python -m sensorpi.db + user input
 
 '''
 
-import os,sqlite3
+import os,sqlite3,sys
 from .__init__ import __RDIR__,filename,conn
 from .builddb import builddb
 
