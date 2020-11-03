@@ -32,7 +32,7 @@ def stage(SERIAL,conn):
 
     conn.commit()
 
-    filename = '/server.db'
+    filename = 'server.db'
 
     # if we are root, write to root dir
     user = os.popen('echo $USER').read().strip()
