@@ -9,7 +9,7 @@ python -m serverpi.db + user input
 
 import os,sys,sqlite3
 from .__init__ import __RDIR__,filename,conn
-from builddb import builddb
+from .builddb import builddb
 
 ## no accidental overwrites
 if 'new' not in sys.argv:
