@@ -56,7 +56,7 @@ def sync(SERIAL,conn):
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
 
-    private_key = os.path.join(__RDIR__,"/.ssh/id_rsa")  # can use password keyword in Connection instead
+    private_key = os.path.join(__RDIR__,".ssh/id_rsa")  # can use password keyword in Connection instead
 
     with pysftp.Connection(host="BBServer1-1.local", username="serverpi", private_key=private_key, private_key_pass=key_pass, cnopts=cnopts) as srv:
         srv.put(localpath=file_path,remotepath='/home/serverpi/datastaging/sensor_'+SERIAL+timestamp+'.db')  # To download a file, replace put with get
