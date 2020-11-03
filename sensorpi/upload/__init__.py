@@ -62,7 +62,7 @@ def sync(SERIAL,conn):
 
     for i in range (10):
         try:
-            with pysftp.Connection(host="BBServer1-1.local", username="serverpi", private_key=private_key, private_key_pass=key_pass, cnopts=cnopts) as srv:
+            with pysftp.Connection(host="10.3.141.1", username="serverpi", private_key=private_key, private_key_pass=key_pass, cnopts=cnopts) as srv:
                 srv.put(localpath=file_path,remotepath='/home/serverpi/datastaging/sensor_'+SERIAL+timestamp+'.db')  # To download a file, replace put with get
         except:
             if i < 9:
