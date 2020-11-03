@@ -8,7 +8,7 @@ def builddb(conn):
 
     table_counter = 0
     print("SQL Tables available: \n===================================================\n")
-    for table_item in cursor_a.fetchall():
+    for table_item in cursor.fetchall():
         current_table = table_item[0]
         table_counter += 1
         print("-> " + current_table)
@@ -49,7 +49,7 @@ def builddb(conn):
 
     table_counter = 0
     print("SQL Tables available: \n===================================================\n")
-    for table_item in cursor_a.fetchall():
+    for table_item in cursor.fetchall():
         current_table = table_item[0]
         table_counter += 1
         print("-> " + current_table)
