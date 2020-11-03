@@ -156,9 +156,10 @@ while True:
             stage_success = upload.stage(SERIAL, db.conn)
 
             if stage_success:
-                db.conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
+                cursor=db.conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
                 table_list=[]
-                for table_item in db.conn.fetchall():
+                for table_item in cursor.fetchall():
                     table_list.append(table_item[0])
 
                 for table_name in table_list:
