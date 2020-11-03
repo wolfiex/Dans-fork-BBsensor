@@ -19,9 +19,6 @@ if 'new' not in sys.argv:
 #remove and create new
 conn.close()
 
-print("__RDIR__ = " + __RDIR__)
-print("filename = " + filename)
-
 os.remove(__RDIR__+filename)
 
 conn = sqlite3.connect(__RDIR__+filename)
