@@ -56,7 +56,7 @@ def sync(SERIAL,conn):
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
 
-    file_path = os.path.join(__RDIR__,'sensor.tgz')
+    file_path = os.path.join(__RDIR__,'sensor.db')
 
     private_key = os.path.join(__RDIR__,".ssh/id_rsa")  # can use password keyword in Connection instead
 
