@@ -54,10 +54,10 @@ def stage(SERIAL,conn):
 
 def sync():
 
-    from serverpi.db import sqlMerge
+    from .sqlMerge import sqlMerge
     from glob import glob
 
-    merge=sqlMerge.sqlMerge()
+    merge=sqlMerge()
 
     dataloc = '/home/serverpi/datastaging'
 
