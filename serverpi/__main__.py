@@ -163,6 +163,7 @@ while True:
                     table_list.append(table_item[0])
 
                 for table_name in table_list:
+                    print ('Dropping table : '+table_name)
                     db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
 
                 db.builddb.builddb(db.conn)
