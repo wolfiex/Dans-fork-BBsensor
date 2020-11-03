@@ -142,6 +142,18 @@ while True:
 
     print ('Saving data to db')
 
+    cursor = db.conn.cursor()
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+
+    table_counter = 0
+    print("SQL Tables available: \n===================================================\n")
+    for table_item in cursor_a.fetchall():
+        current_table = table_item[0]
+        table_counter += 1
+        print("-> " + current_table)
+    print("\n===================================================\n")
+
     db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,SP,RC,UNIXTIME) \
               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", d );
 
