@@ -75,3 +75,6 @@ def sync():
     merge.mergelist(serverfiles[0], sensorfiles)
 
     return True
+
+if __name__=="__main__":
+    sync()
