@@ -45,6 +45,12 @@ def sync(SERIAL,conn):
 
     conn.commit()
 
+    # if we are root, write to root dir
+    user = os.popen('echo $USER').read().strip()
+
+    if user == 'root': __RDIR__ = '/root'
+    else: __RDIR__ = '/home/'+user
+
     key_pass = readpassphrase(__RDIR__)
 
     cnopts = pysftp.CnOpts()
