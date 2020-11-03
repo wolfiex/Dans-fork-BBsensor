@@ -223,7 +223,7 @@ while True:
                 if upload_success:
                     db.conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
                     table_list=[]
-                    for table_item in cursor_a.fetchall():
+                    for table_item in db.conn.fetchall():
                         table_list.append(table_item[0])
 
                     for table_name in table_list:
