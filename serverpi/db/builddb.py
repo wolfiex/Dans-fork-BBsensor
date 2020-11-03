@@ -7,7 +7,7 @@ def builddb(conn):
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
 
     table_counter = 0
-    print("SQL Tables available: \n===================================================\n")
+    print("SQL Tables available before rebuild: \n===================================================\n")
     for table_item in cursor.fetchall():
         current_table = table_item[0]
         table_counter += 1

@@ -42,6 +42,7 @@ alpha = R1.alpha
 from .exitcondition import GPIO
 from .crypt import scramble
 from . import db
+from .db import builddb
 from . import upload
 if DHT_module: from . import DHT
 
@@ -140,26 +141,12 @@ while True:
     #DATE = date.today().strftime("%d/%m/%Y")
     d = runcycle()
 
-    print ('Saving data to db')
-
     cursor = db.conn.cursor()
-
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-
-    table_counter = 0
-    print("SQL Tables available: \n===================================================\n")
-    for table_item in cursor.fetchall():
-        current_table = table_item[0]
-        table_counter += 1
-        print("-> " + current_table)
-    print("\n===================================================\n")
 
     db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,SP,RC,UNIXTIME) \
               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", d );
 
     db.conn.commit() # dont forget to commit!
-
-    print ('Data saved')
 
     if STOP:break
 
@@ -169,9 +156,7 @@ while True:
 
         if DATE != LAST_SAVE:
 
-            print ('Staging data')
             stage_success = upload.stage(SERIAL, db.conn)
-            print ('Stage success = ', stage_success)
 
             if stage_success:
                 cursor=db.conn.cursor()
@@ -184,7 +169,8 @@ while True:
                     print ('Dropping table : '+table_name)
                     db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
 
-                db.builddb.builddb(db.conn)
+                print('rebuilding db')
+                builddb.builddb(db.conn)
 
                 print('staging complete', DATE, hour)
                 LAST_SAVE = DATE
