@@ -61,9 +61,9 @@ def sync():
 
     dataloc = '/home/serverpi/datastaging'
 
-    sensorfiles = glob(os.path.join(dataloc,'sensor*.db')
+    sensorfiles = glob(os.path.join(dataloc,'sensor*.db'))
 
-    serverfiles = glob(os.path.join(dataloc,'server*.db')
+    serverfiles = glob(os.path.join(dataloc,'server*.db'))
 
     if len (serverfiles > 1):
         sensorfiles.append(serverfiles[1:])
