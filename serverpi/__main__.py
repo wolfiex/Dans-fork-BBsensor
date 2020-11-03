@@ -165,7 +165,7 @@ while True:
                 for table_name in table_list:
                     db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
 
-                db.builddb(db.conn)
+                db.builddb.builddb(db.conn)
 
                 print('staging complete', DATE, hour)
                 LAST_SAVE = DATE
