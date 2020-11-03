@@ -10,7 +10,7 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
-LOC='/home/serverpi'
+LOC='/root'
 
 sudo systemctl stop ntp;
 sudo ntpd -q -g >> ${LOC}/time.log
