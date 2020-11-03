@@ -56,7 +56,7 @@ def sync(SERIAL,conn):
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
 
-    file_path = os.path.join(__RDIR__,'sensor.db')
+    file_path = os.path.join(__RDIR__,'sensor.tgz')
 
     private_key = os.path.join(__RDIR__,".ssh/id_rsa")  # can use password keyword in Connection instead
 
@@ -69,6 +69,7 @@ def sync(SERIAL,conn):
                 print ('Upload failed - attempt {} of 10\nRetrying'.format(i+1))
                 continue
             else:
+                print ('Could not upload db to serverpi')
                 return False
 
     return True
