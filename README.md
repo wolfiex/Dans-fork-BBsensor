@@ -7,10 +7,7 @@ OPC R1 server scripts for Pi3
 `bash setup/opc_install.sh`
 
 #### Then run the relevant tests
-`cd serverpi && python3 runtests.py`
-
-### server
-`bash setup/...install.sh`
+`python3 -m sensorpi.tests interrupt db opc`
 
 
 ## link .rc_local to run on boot
@@ -29,16 +26,11 @@ or
 
 This contains:
 - network clock updates on load (takes a number of seconds)
+- update of repository
 - code to run measurement unit on boot
-- server init
-
-
-
 
 ## Create a new database
 `python -m serverpi.db` and type `yes`
-
-
 
 
 ### Debug corruption on device
