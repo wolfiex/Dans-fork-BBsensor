@@ -12,20 +12,6 @@ fi
 
 LOC='/root'
 
-#!/bin/sh -e
-#
-# rc.local
-#
-
-
-# Print the IP address
-_IP=$(hostname -I) || true
-if [ "$_IP" ]; then
-  printf "My IP address is %s\n" "$_IP"
-fi
-
-LOC='/root'
-
 ((count = 20))                            # Maximum number to try.
 while [[ $count -ne 0 ]] ; do
     ping -c 1 8.8.8.8                      # Try once.
