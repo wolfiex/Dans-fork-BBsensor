@@ -45,8 +45,6 @@ if [[ $rc -eq 0 ]] ; then                  # Make final determination.
         let COUNT=$COUNT+1
         sleep $DELAY
     done
-else
-    echo `Timeout - Time and Git Repo not updated`
 fi
 
 sudo timedatectl >> ${LOC}/git.log;
