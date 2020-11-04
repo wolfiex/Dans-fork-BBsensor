@@ -173,7 +173,8 @@ while True:
                 print('staging complete', DATE, hour)
                 LAST_SAVE = DATE
 
-    if hour > NIGHT[0] or hour < NIGHT[1]:
+    #if hour > NIGHT[0] or hour < NIGHT[1]:
+    if hour == 0 or hour == 12:
 
         if DATE != LAST_UPLOAD:
             if upload.online():
