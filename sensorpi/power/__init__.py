@@ -33,6 +33,15 @@ def threadblink():
         ledon()
         time.sleep(1)
         ledoff()
+        
+def threadblinkupdate():
+    global terminate
+    while terminate:
+        ledon()
+        time.sleep(3)
+        ledoff()
+        time.sleep(1)
+     
 
 def blink_nonblock(n=4):
     from threading import Thread
@@ -43,6 +52,12 @@ def blink_nonblock(n=4):
 def blink_nonblock_inf():
     from threading import Thread
     loc = Thread(target=threadblink, name='blink')
+    loc.start()
+    return loc
+
+def blink_nonblock_inf_update():
+    from threading import Thread
+    loc = Thread(target=threadblinkupdate, name='blink2')
     loc.start()
     return loc
 
