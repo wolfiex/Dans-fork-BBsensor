@@ -34,6 +34,10 @@ def readpassphrase(__RDIR__):
 def sync(SERIAL,conn):
 
     import pysftp
+    from time import sleep
+    from random import randint
+
+    sleep(randint(10,600))  # Wait a random amount of time between 10 secs and 10 mins to limit overloading serverpi
 
     DATE = date.today().strftime("%d%m%Y")
     TIME = datetime.utcnow().strftime("%H%M%S")
