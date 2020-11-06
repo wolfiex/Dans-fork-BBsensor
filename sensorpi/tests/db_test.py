@@ -1,6 +1,3 @@
-import os
-os.system('rm test.db')
-
 import sqlite3
 
 conn = sqlite3.connect('test.db')

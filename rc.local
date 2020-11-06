@@ -3,18 +3,12 @@
 # rc.local
 #
 
+
 # Print the IP address
 _IP=$(hostname -I) || true
 if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
-
-#sudo systemctl stop ntp;
-#sudo ntpd -q -g >> /root/time.log
-
-sudo rfkill block bluetooth;
-
-sudo timedatectl >> /root/git.log;
 
 LOC='/root'
 
@@ -29,6 +23,8 @@ while [[ $count -ne 0 ]] ; do
 done
 
 if [[ $rc -eq 0 ]] ; then                  # Make final determination.
+    sudo systemctl stop ntp;
+    sudo ntpd -q -g >> ${LOC}/time.log
 
     RETRIES=5
     DELAY=10
@@ -45,12 +41,12 @@ if [[ $rc -eq 0 ]] ; then                  # Make final determination.
         let COUNT=$COUNT+1
         sleep $DELAY
     done
+else
+    echo `Timeout - Time and Git Repo not updated`
 fi
 
 sudo timedatectl >> ${LOC}/git.log;
 
-cd ${LOC}/BBSensor && sudo python3 -m sensorpi >> /root/sensor.log &
-
-#echo 'bbsensor00' | sudo tee  /etc/hostname
+cd ${LOC}/BBSensor && sudo python3 -m serverpi >> ${LOC}/server.log &
 
 exit 0

@@ -1,4 +1,4 @@
-import sqlite3
+import os,sys,sqlite3
 
 def builddb(conn):
 

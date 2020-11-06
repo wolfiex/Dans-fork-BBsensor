@@ -1,5 +1,5 @@
 '''
-Left rail from the top 
+Left rail from the top
 
 4th - output
 5th - gnd
@@ -23,14 +23,13 @@ def pinon():
 def pinoff():
     GPIO.setup(pin, GPIO.IN)
     time.sleep(1)
-    
-pinoff()    
+
+pinoff()
 pinon()
 
 
 DHT_SENSOR = Adafruit_DHT.DHT11 #DHT22
 
 def read():
-    # humidity, temperature = 
+    # humidity, temperature =
     return Adafruit_DHT.read_retry(DHT_SENSOR, DHT_PIN)
-    

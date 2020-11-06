@@ -12,23 +12,26 @@ sudo apt-get install -y python3-ipython;
 sudo apt-get install -y screen;
 
 
-cd ../ && git submodule update --init --recursive;
+git submodule update --init --recursive;
 pip3 install pyusbiss;
 pip3 install git+https://github.com/doceme/py-spidev.git;
 
-cd ../py-opc-R1 && sudo python3 setup.py develop ; cd -
+cd py-opc-R1 && sudo python3 setup.py develop ; cd -
 
 pip3 install db-sqlite3;
 pip3 install cryptography;
 
-pip3 install wifindme --yes;
+pip3 install wifindme;
 sudo apt-get install ntp --yes ;
+
+
 sudo timedatectl set-ntp true
 pip3 install Adafruit_DHT;
 pip3 uninstall numpy -y;
 sudo apt-get install python3-numpy --yes ;
 pip3 install pandas;
-pip3 install pysftp;
+pip3 install boto3; # for uploading data to aws
+
 
 #/dev/ttyS0 is owned by the user root and the group dialout, so to be able to acesss the serial device, I would add myself to the dialout group:
 
@@ -37,7 +40,9 @@ sudo chmod 666 /dev/ttyS0 ;
 
 sudo apt autoremove -y;
 echo 'finished'
-cd ../ && python3 -m sensorpi.db new;
-cd ../ && python3 -m sensorpi.tests;
+
+python3 -m serverpi.db new;
+cd serverpi && python3 runtests.py;
+
 
 sudo reboot;
