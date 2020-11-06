@@ -197,7 +197,7 @@ while True:
     hour = datetime.now().hour#gps.last.copy()['gpstime'][:2]
 
 
-    if hour > NIGHT[0] or hour < NIGHT[1]:
+    if (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7 
         ''' hometime - SLEEP '''
         if DEBUG: print('NightSleep')
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
@@ -206,11 +206,13 @@ while True:
         time.sleep(60*60) # sleep 1h
         TYPE = 4
 
-    elif hour > SCHOOL[0] and hour < SCHOOL[1]: #9 15 utc
+    elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]): # >7 <9 & >15 <18 utc (9-15)
         if DEBUG: print('@ School')
         ''' at school - try upload'''
         ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
-
+    
+        DATE = date.today().strftime("%d/%m/%Y")
+        
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
 
         if DATE != LAST_SAVE:
