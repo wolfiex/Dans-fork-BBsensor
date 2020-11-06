@@ -32,8 +32,8 @@ SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 # assert SAMPLE_LENGTH > 10
 
 ### hours (not inclusive)
-NIGHT = ['18','07'] # stop 7-7
-SCHOOL = ['9','15'] # stop 10 -2
+NIGHT = [18,7] # stop 7-7
+SCHOOL = [9,15] # stop 10 -2
 
 ########################################################
 ## Bluetooth setup
@@ -194,7 +194,7 @@ while True:
     if STOP:break
 
 
-    hour = '%02d'%datetime.now().hour#gps.last.copy()['gpstime'][:2]
+    hour = datetime.now().hour#gps.last.copy()['gpstime'][:2]
 
 
     if hour > NIGHT[0] or hour < NIGHT[1]:
@@ -206,7 +206,7 @@ while True:
         time.sleep(60*60) # sleep 1h
         TYPE = 4
 
-    elif hour > SCHOOL[0] and hour < SCHOOL[1]:
+    elif hour > SCHOOL[0] and hour < SCHOOL[1]: #9 15 utc
         if DEBUG: print('@ School')
         ''' at school - try upload'''
         ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
@@ -216,7 +216,7 @@ while True:
         if DATE != LAST_SAVE:
             if upload.online():
                 #check if connected to wifi
-                loading = power.blink_nonblock_inf()
+                loading = power.blink_nonblock_inf_update()
                 ## SYNC
                 upload_success = upload.sync(SERIAL,db.conn)
 
