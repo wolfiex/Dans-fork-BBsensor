@@ -34,6 +34,16 @@ def threadblink():
         time.sleep(1)
         ledoff()
 
+def threadblinkupload():
+    global terminate
+    while terminate:
+        ledon()
+        time.sleep(3)
+        ledoff()
+        time.sleep(1)
+
+        
+        
 def blink_nonblock(n=4):
     from threading import Thread
     loc = Thread(target=blink, args={n:n}, name='blink')
@@ -43,6 +53,12 @@ def blink_nonblock(n=4):
 def blink_nonblock_inf():
     from threading import Thread
     loc = Thread(target=threadblink, name='blink')
+    loc.start()
+    return loc
+
+def blink_nonblock_inf_upload():
+    from threading import Thread
+    loc = Thread(target=threadblinkupload, name='blink2')
     loc.start()
     return loc
 
