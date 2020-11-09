@@ -1,6 +1,12 @@
 # BBServer!
 OPC R1 server scripts for Pi3
 
+## Power Led meaning:
+- Led on whist sampling
+- Led off when writing to file
+- blink 1s on loading code
+- blink 3 seconds on upload  (sending data)
+
 
 ## Setup
 ### seting up logger
