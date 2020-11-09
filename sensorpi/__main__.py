@@ -28,7 +28,7 @@ LAST_SAVE = None
 DHT_module = False
 
 ### hours (not inclusive)
-SCHOOL = ['9','15'] # stage db during school hours
+SCHOOL = [9,15] # stage db during school hours
 
 ########################################################
 ## Lib Imports
@@ -119,7 +119,7 @@ def runcycle():
                 float(rh),
                 float(pm['Sampling Period']),
                 int(pm['Reject count glitch']),
-                now.strftime("%s"),
+                int(now.strftime("%s")),
             ] )
 
         if STOP:break
@@ -168,9 +168,9 @@ while True:
 
     hour = '%02d'%datetime.now().hour#gps.last.copy()['gpstime'][:2]
 
-    elif hour > SCHOOL[0] and hour < SCHOOL[1]:
+elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]):
 
-        if DEBUG: print('@ School')
+        if DEBUG: print('School time')
         ''' at school - try upload'''
         ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
 
@@ -203,7 +203,7 @@ while True:
                     print('upload complete', DATE, hour)
                     LAST_SAVE = DATE
 
-    if hour > NIGHT[0] or hour < NIGHT[1]:
+    if (hour < SCHOOL[0]) or (hour > SCHOOL[1]):
 
         if upload.online():
 
