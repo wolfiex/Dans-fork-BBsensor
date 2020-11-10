@@ -1,10 +1,14 @@
-# BBServer!
-OPC R1 server scripts for Pi3
+# BBStaticSensor
+OPC R1 static sensor scripts for Pi3
 
 
 ## Setup
 ### seting up logger
-`bash setup/opc_install.sh`
+`bash setup/opc_install.sh` - Requires internet connection
+
+in `sudo raspi-config`, enable SPI interface
+
+finally, run `sudo bash keygen.sh` while connected to the internet through the serverpi
 
 #### Then run the relevant tests
 `python3 -m sensorpi.tests interrupt db opc`
@@ -12,14 +16,14 @@ OPC R1 server scripts for Pi3
 
 ## link .rc_local to run on boot
 Open `sudo nano /etc/rc.local`
-and source the local rc file in this directory. 
+and source the local rc file in this directory.
 
-For testing this will likely be under `/home/pi/BBSensor/rc.local` but will eventually NEED to be changed to the `/root` folder when deployed permanently. 
+For testing this will likely be under `/home/pi/BBSensor/rc.local` but will eventually NEED to be changed to the `/root` folder when deployed permanently.
 
 We add the lines:
 
 ``` bash /home/pi/BBSensor/rc.local ```
-or 
+or
 ``` bash /root/BBSensor/rc.local ```
 
 ### rc.local contents
@@ -30,7 +34,7 @@ This contains:
 - code to run measurement unit on boot
 
 ## Create a new database
-`python -m serverpi.db` and type `yes`
+`python -m sensorpi.db` and type `yes`
 
 
 ### Debug corruption on device

@@ -22,12 +22,12 @@ cd ../py-opc-R1 && sudo python3 setup.py develop ; cd -
 pip3 install db-sqlite3;
 pip3 install cryptography;
 
-pip3 install wifindme --yes;
-sudo apt-get install ntp --yes ;
+pip3 install wifindme;
+sudo apt-get install -y ntp;
 sudo timedatectl set-ntp true
 pip3 install Adafruit_DHT;
 pip3 uninstall numpy -y;
-sudo apt-get install python3-numpy --yes ;
+sudo apt-get install -y python3-numpy;
 pip3 install pandas;
 pip3 install pysftp;
 
