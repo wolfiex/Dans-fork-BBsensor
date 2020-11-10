@@ -166,9 +166,9 @@ while True:
 
     if STOP:break
 
-    hour = '%02d'%datetime.now().hour#gps.last.copy()['gpstime'][:2]
+    hour = datetime.now().hour
 
-elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]):
+    if (hour > SCHOOL[0]) and (hour < SCHOOL[1]):
 
         if DEBUG: print('School time')
         ''' at school - try upload'''
@@ -203,7 +203,7 @@ elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]):
                     print('upload complete', DATE, hour)
                     LAST_SAVE = DATE
 
-    if (hour < SCHOOL[0]) or (hour > SCHOOL[1]):
+    elif (hour < SCHOOL[0]) or (hour > SCHOOL[1]):
 
         if upload.online():
 
