@@ -47,6 +47,6 @@ fi
 
 sudo timedatectl >> ${LOC}/git.log;
 
-cd ${LOC}/BBSensor && sudo python3 -m serverpi >> ${LOC}/server.log &
+cd ${LOC}/BBSensor && sudo python3 -m sensorpi >> ${LOC}/sensor.log &
 
 exit 0
