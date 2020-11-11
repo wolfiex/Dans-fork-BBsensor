@@ -17,6 +17,7 @@ PIs:
 
 import time,sys,os
 from datetime import date,datetime
+import subprocess
 ## runtime constants
 DEBUG  = True
 SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
@@ -36,6 +37,9 @@ SCHOOL = [9,15] # stage db during school hours
 
 from .tests import pyvers
 from .geolocate import lat,lon,alt
+from . import power
+loading = power.blink_nonblock_inf()
+
 from . import R1
 #from R1 import alpha,info,poll,keep
 alpha = R1.alpha
@@ -57,10 +61,10 @@ print('########################################################')
 print('starting',datetime.now())
 R1.clean(alpha)
 
-#while loading.isAlive():
-#    if DEBUG: print('stopping loading blink ...')
-#    power.stopblink(loading)
-#    loading.join(.1)
+while loading.isAlive():
+    if DEBUG: print('stopping loading blink ...')
+    power.stopblink(loading)
+    loading.join(.1)
 
 
 ########################################################
@@ -145,7 +149,7 @@ while True:
     #update less frequenty in loop
     # DATE = date.today().strftime("%d/%m/%Y")
 
-    #power.ledoff()
+    power.ledoff()
 
     ## run cycle
     d = runcycle()
@@ -162,7 +166,7 @@ while True:
 
     if DEBUG: print('saveddb')
 
-    #power.ledon()
+    power.ledon()
 
     if STOP:break
 
@@ -178,7 +182,7 @@ while True:
 
             if upload.online():
                 #check if connected to wifi
-                #loading = power.blink_nonblock_inf()
+                loading = power.blink_nonblock_inf_update()
                 ## SYNC
                 upload_success = upload.sync(SERIAL,db.conn)
 
@@ -196,9 +200,9 @@ while True:
                     print('rebuilding db')
                     builddb.builddb(db.conn)
 
-                    #while loading.isAlive():
-                    #    power.stopblink(loading)
-                    #    loading.join(.1)
+                    while loading.isAlive():
+                        power.stopblink(loading)
+                        loading.join(.1)
 
                     print('upload complete', DATE, hour)
                     LAST_SAVE = DATE
@@ -211,9 +215,10 @@ while True:
             os.system('sudo timedatectl &')
 
             ## run git pull
-            #################
-
-            #################
+            branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
+            os.system("git fetch -q origin {}".format(branchname))
+            if not (os.system("git status --branch --porcelain | grep -q behind")):
+                STOP = True
 
 ########################################################
 ########################################################
@@ -221,4 +226,6 @@ while True:
 print('exiting- STOP:',STOP)
 db.conn.commit()
 db.conn.close()
-#power.ledon()
+power.ledon()
+if not (os.system("git status --branch --porcelain | grep -q behind")):
+    os.system("sudo reboot")
