@@ -18,6 +18,10 @@ sudo timedatectl >> /root/git.log;
 
 LOC='/root'
 
+if $(cd ${LOC}/BBSensor && git status --branch --porcelain | grep -q behind); then
+    cd ${LOC}/BBSensor && git merge >> ${LOC}/git.log
+fi
+
 ((count = 20))                            # Maximum number to try.
 while [[ $count -ne 0 ]] ; do
     ping -c 1 8.8.8.8                      # Try once.
@@ -37,7 +41,7 @@ if [[ $rc -eq 0 ]] ; then                  # Make final determination.
     # Update the repo, with retries incase the sensor is not connected to the internet.
 
     while [ $COUNT -lt $RETRIES ]; do
-        cd ${LOC}/BBSensor && git pull >> ${LOC}/git.log;
+        cd ${LOC}/BBSensor && git pull >> ${LOC}/git.log
         if [ $? -eq 0 ]; then
             RETRIES=0
             break

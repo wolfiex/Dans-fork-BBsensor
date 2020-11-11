@@ -197,7 +197,7 @@ while True:
     hour = datetime.now().hour#gps.last.copy()['gpstime'][:2]
 
 
-    if (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7 
+    if (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
         ''' hometime - SLEEP '''
         if DEBUG: print('NightSleep')
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
@@ -210,9 +210,9 @@ while True:
         if DEBUG: print('@ School')
         ''' at school - try upload'''
         ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
-    
+
         DATE = date.today().strftime("%d/%m/%Y")
-        
+
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
 
         if DATE != LAST_SAVE:
@@ -240,9 +240,10 @@ while True:
                     os.system('sudo timedatectl &')
 
                     ## run git pull
-                    #################
-
-                    #################
+                    branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
+                    os.system("git fetch -q origin {}".format(branchname))
+                    if not (os.system("git status --branch --porcelain | grep -q behind")):
+                        STOP = True
 
                     while loading.isAlive():
                         power.stopblink(loading)
@@ -282,3 +283,5 @@ print('exiting- STOP:',STOP)
 db.conn.commit()
 db.conn.close()
 power.ledon()
+if not (os.system("git status --branch --porcelain | grep -q behind")):
+    os.system("sudo reboot")
