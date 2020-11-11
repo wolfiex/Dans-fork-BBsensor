@@ -17,6 +17,7 @@ PIs:
 
 import time,sys,os
 from datetime import date,datetime
+import subprocess
 ## runtime constants
 DEBUG  = True
 SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
@@ -214,7 +215,8 @@ while True:
             os.system('sudo timedatectl &')
 
             ## run git pull
-            os.system("git fetch -q")
+            branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
+            os.system("git fetch -q origin {}".format(branchname))
             if not (os.system("git status --branch --porcelain | grep -q behind")):
                 STOP = True
 
