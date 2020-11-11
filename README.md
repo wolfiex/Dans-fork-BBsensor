@@ -45,4 +45,3 @@ git fetch origin
 
 git reset --hard origin/
 ```
-Test4
