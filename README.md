@@ -45,5 +45,3 @@ git fetch origin
 
 git reset --hard origin/
 ```
-
-Second test, this time in python
