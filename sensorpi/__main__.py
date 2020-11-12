@@ -237,15 +237,6 @@ while True:
                     print('rebuilding db')
                     builddb.builddb(db.conn)
 
-                    ## update time!
-                    os.system('sudo timedatectl &')
-
-                    ## run git pull
-                    branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
-                    os.system("git fetch -q origin {}".format(branchname))
-                    if not (os.system("git status --branch --porcelain | grep -q behind")):
-                        STOP = True
-
                     while loading.isAlive():
                         power.stopblink(loading)
                         loading.join(.1)
@@ -253,14 +244,22 @@ while True:
                     print('upload complete', DATE, hour)
                     LAST_SAVE = DATE
 
+                ## update time!
+                os.system('sudo timedatectl &')
+
+                ## run git pull
+                branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
+                os.system("git fetch -q origin {}".format(branchname))
+                if not (os.system("git status --branch --porcelain | grep -q behind")):
+                    STOP = True
 
         SAMPLE_LENGTH = SAMPLE_LENGTH_slow
 
         # sleep for 18 minutes - check break statement every minute
 
         # check if we are trying to stop the device every minute
-        for i in range(12):
-            time.sleep(5*60) #12 sets of 5 min
+        for i in range(5):
+            time.sleep(5*60) #5 sets of 5 min
             if STOP:break
 
         TYPE = 4
