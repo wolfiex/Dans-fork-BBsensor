@@ -55,6 +55,7 @@ SCHOOL = [9,15] # stop 10 -2
 #         print('debug using bluetooth serial: on')
 #     except:print('no bluetooth serial')
 
+
 ########################################################
 ########################################################
 
