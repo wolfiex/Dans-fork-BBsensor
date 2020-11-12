@@ -204,7 +204,7 @@ while True:
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
         power.ledon()
         SAMPLE_LENGTH = -1 # Dont run !  SAMPLE_LENGTH_slow
-        time.sleep(60*60) # sleep 1h
+        time.sleep(30*60) # sleep 0.5h
         TYPE = 4
 
     elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]): # >7 <9 & >15 <18 utc (9-15)
