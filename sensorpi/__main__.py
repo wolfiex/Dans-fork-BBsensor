@@ -2,62 +2,46 @@
 # -*- coding: utf-8 -*-
 
 """
-Insert description here
-
-Project: FAZE-In
-
-Usage : __main__.py arg1 arg2 arg3
-
-Args:
-    arg1: Description
-    arg2: Description
-    arg3: Description
-
-"""
-
-# Built-in/Generic Imports
-import os
-import sys
-#...
-
-# Libs
-import numpy as np
-import pandas as pd
-#...
-
-#Own Modules
-from {path} import {class}
-
-__author__ = "Christopher Symonds"
-__copyright__ = "Copyright {year}, University of Leeds"
-__credits__ = ["Christopher Symonds", "{credit_list}"]
-__license__ = "MIT"
-__version__ = "{major}.{minor}.{rel}"
-__maintainer__ = "{maintainer}"
-__email__ = "C.C.Symonds@leeds.ac.uk"
-__status__ = "{dev_status}"
-
-
-
-'''
 SensorPI LIBRARY
 
 A library to run the portable sensors for the born in brandford project.
 
-Developers:
-    D.Ellis CEMAC @ UOLeeds
-    C.Symonds CEMAC @ UOLeeds
-PIs:
-    K.Pringle UOLeeds
-    J.McQuaid UOLeeds
+Project: Born In Bradford Breathes
 
-'''
+Usage : python3 -m sensorpi
+
+"""
+
+# Built-in/Generic Imports
+import time,sys,os
+from datetime import date,datetime
+
+#Own Modules
+from .tests import pyvers
+from .exitcondition import GPIO
+from . import power
+from .crypt import scramble
+from . import db
+from .db import builddb
+from . import upload
+if DHT_module: from . import DHT
+from . import gps
+from . import R1
+
+__author__ = "Dan Ellis, Christopher Symonds"
+__copyright__ = "Copyright 2020, University of Leeds"
+__credits__ = ["Dan Ellis", "Christopher Symonds", "Jim McQuaid", "Kirsty Pringle"]
+__license__ = "MIT"
+__version__ = "0.3.4"
+__maintainer__ = "C. Symonds"
+__email__ = "C.C.Symonds@leeds.ac.uk"
+__status__ = "Prototype"
+
+
 ########################################################
 ##  Imports and constants
 ########################################################
 
-import time,sys,os
-from datetime import date,datetime
 ## runtime constants
 DEBUG  = True
 SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
@@ -74,7 +58,12 @@ SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 
 ### hours (not inclusive)
 NIGHT = [18,7] # stop 7-7
-SCHOOL = [9,17] # stop 10 -2
+SCHOOL = [9,15] # stop 10 -2
+
+loading = power.blink_nonblock_inf()
+gpsdaemon = gps.init(wait=False)
+alpha = R1.alpha
+
 
 ########################################################
 ## Bluetooth setup
@@ -99,29 +88,6 @@ SCHOOL = [9,17] # stop 10 -2
 
 ########################################################
 ########################################################
-
-
-
-
-########################################################
-## Lib Imports
-########################################################
-
-from .tests import pyvers
-# from .geolocate import lat,lon,alt
-from .exitcondition import GPIO
-from . import power
-loading = power.blink_nonblock_inf()
-
-from .crypt import scramble
-from . import db
-from .db import builddb
-from . import upload
-if DHT_module: from . import DHT
-from . import gps
-gpsdaemon = gps.init(wait=False)
-from . import R1
-alpha = R1.alpha
 
 def interrupt(channel):
     print ("Pull Down on GPIO 21 detected: exiting program")
