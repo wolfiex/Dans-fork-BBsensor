@@ -1,6 +1,7 @@
 #https://www.bluehost.com/help/article/managing-databases-with-command-line-ssh
 import pandas as pd
 import sqlite3
+import sys
 
 '''
 pip3 uninstall numpy #remove previously installed package
@@ -19,6 +20,9 @@ df = pd.read_sql_query("SELECT * from MEASUREMENTS", conn)
 # Verify that result of SQL query is stored in the dataframe
 
 print(df.drop('LOC',axis=1).tail(n=50))
+
+if 'csv' in sys.argv:
+  df.drop('LOC',axis=1).to_csv('deleteme.csv')
 
 #df.to_csv('./Measurements.csv', columns = ['TIME', 'PM1', 'PM3', 'PM10', 'SP', 'RC'], index=False)
 
