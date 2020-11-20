@@ -23,6 +23,8 @@ print(df.drop('LOC',axis=1).tail(n=50))
 
 if 'csv' in sys.argv:
   df.drop('LOC',axis=1).to_csv('/root/deleteme.csv')
+  print(' Written to /root/deleteme.csv. Please Delete after')
+  
 
 #df.to_csv('./Measurements.csv', columns = ['TIME', 'PM1', 'PM3', 'PM10', 'SP', 'RC'], index=False)
 
