@@ -24,7 +24,6 @@ from .crypt import scramble
 from . import db
 from .db import builddb
 from . import upload
-if DHT_module: from . import DHT
 from . import gps
 from . import R1
 
@@ -63,7 +62,7 @@ SCHOOL = [9,15] # stop 10 -2
 loading = power.blink_nonblock_inf()
 gpsdaemon = gps.init(wait=False)
 alpha = R1.alpha
-
+if DHT_module: from . import DHT
 
 ########################################################
 ## Bluetooth setup
