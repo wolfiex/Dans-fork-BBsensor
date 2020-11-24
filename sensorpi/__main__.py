@@ -206,7 +206,7 @@ while True:
 
     if (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
         ''' hometime - SLEEP '''
-        if DEBUG: print('NightSleep')
+        if DEBUG: print('NightSleep, hour={}'.format(hour))
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
         power.ledon()
         SAMPLE_LENGTH = -1 # Dont run !  SAMPLE_LENGTH_slow
@@ -214,7 +214,7 @@ while True:
         TYPE = 4
 
     elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]): # >7 <9 & >15 <18 utc (9-15)
-        if DEBUG: print('@ School')
+        if DEBUG: print('@ School, hour={}'.format(hour))
         ''' at school - try upload'''
         ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
 
@@ -270,7 +270,7 @@ while True:
 
         TYPE = 4
     else:
-        ''' en route - FASTSAMPLE'''
+        if DEBUG: print('en route - FASTSAMPLE, hour={}'.format(hour))
 
         print (gpsdaemon.is_alive())
 
