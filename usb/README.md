@@ -1,7 +1,7 @@
 # The alternative data transfer mode. 
 
 ## Instructions
-1. Log On as superuser
+1. Log on as superuser
 2. run a git pull
 3. complete 'set up new usb' instructions below
 4. Reboot - `sudo reboot`
