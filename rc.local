@@ -1,7 +1,5 @@
 #!/bin/sh -e
-#
 # rc.local
-#
 
 # Print the IP address
 _IP=$(hostname -I) || true
