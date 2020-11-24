@@ -33,7 +33,7 @@ for u in os.popen('sudo blkid').readlines():
     
 for u in usbs:
     
-    print ('Converting %(LABEL)s for use'%u)
+    print ('Connecting to %(LABEL)s'%u)
 
     os.system('sudo umount /media')
     os.system('sudo mount %(loc)s /media'%u)
