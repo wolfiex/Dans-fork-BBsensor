@@ -8,6 +8,7 @@ then
 else
         touch $LOCK
         # the actual command to run upon USB plug in
+        echo '\n\n' >> /root/usb.log
         /bin/date >> /root/usb.log
         python3 /root/BBSensor/usb/datatransfer.py >> /root/usb.log
 fi
