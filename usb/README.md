@@ -31,10 +31,13 @@ On when finished
 
 
 
-# Bootup setup
+### Bootup setup
 This has been added to rc.local.
 Move `optional_usb.rules` into `/etc/udev/rules.d/`
 
+### Remove 
+`rm /etc/udev/rules.d/optional_usb.rules` 
+and comment out in rc.local
 
 
 
