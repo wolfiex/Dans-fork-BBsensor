@@ -10,7 +10,7 @@
 1. Plug in USB
 2. run `python3 setup_USB.py`
 3. copy UUID code
-4. place in `BBSensor/usb/approved.dev` on github repo to be disemminated to all devices
+4. place in `BBSensor/usb/approved.dev` on github repo to be disemminated to all devices. No transfers will happen until this is updated. 
 
 ## File location 
 Files are transfered into the `/transferdata` directory on your USB. 
