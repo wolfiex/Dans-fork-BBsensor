@@ -58,4 +58,4 @@ for u in usbs:
 
     os.system('sudo umount /media')
     
-    
+print('--end--')
