@@ -57,5 +57,7 @@ for u in usbs:
         
 
     os.system('sudo umount /media')
+
     
+ledon()
 print('--end--')
