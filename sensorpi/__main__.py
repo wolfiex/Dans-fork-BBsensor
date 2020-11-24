@@ -101,7 +101,7 @@ def runcycle():
 
         pm = R1.poll(alpha)
 
-        if DEBUG: print(pm)
+        #if DEBUG: print(pm)
 
         if float(pm['PM1'])+float(pm['PM10'])  > 0:
             # if there are results.

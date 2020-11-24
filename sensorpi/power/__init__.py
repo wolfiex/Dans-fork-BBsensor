@@ -4,15 +4,15 @@ power
 sudo tee
 '''
 import os,time
-os.system('echo none | sudo tee /sys/class/leds/led0/trigger')
+os.system('echo none | sudo tee /sys/class/leds/led0/trigger > /dev/null')
 
 
 def ledon():
-    os.system('echo 0 | sudo tee /sys/class/leds/led0/brightness > /dev/null')
-    
-def ledoff():
     os.system('echo 1 | sudo tee /sys/class/leds/led0/brightness > /dev/null')
-    
+
+def ledoff():
+    os.system('echo 0 | sudo tee /sys/class/leds/led0/brightness > /dev/null')
+
 def blink(n = 4 ):
     for i in range(n):
         ledon()
@@ -25,7 +25,7 @@ def blink(n = 4 ):
 #                  kwargs={'arg2':arg2}, name='thread_function').start()
 
 
-terminate = True 
+terminate = True
 
 def threadblink():
     global terminate
@@ -33,6 +33,14 @@ def threadblink():
         ledon()
         time.sleep(1)
         ledoff()
+
+def threadblinkupdate():
+    global terminate
+    while terminate:
+        ledon()
+        time.sleep(3)
+        ledoff()
+        time.sleep(1)
 
 def blink_nonblock(n=4):
     from threading import Thread
@@ -43,6 +51,12 @@ def blink_nonblock(n=4):
 def blink_nonblock_inf():
     from threading import Thread
     loc = Thread(target=threadblink, name='blink')
+    loc.start()
+    return loc
+
+def blink_nonblock_inf_update():
+    from threading import Thread
+    loc = Thread(target=threadblinkupdate, name='blink2')
     loc.start()
     return loc
 
@@ -61,7 +75,7 @@ def getrunloc():
     with open('/home/pi/loading.txt','w') as f:
         f.write(name)
         f.write(location)
-    import sys 
+    import sys
     #import shutdown
     #sys.exit('load test')
 
@@ -120,4 +134,3 @@ Code: Select all
 
 
 '''
-

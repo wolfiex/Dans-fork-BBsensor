@@ -68,7 +68,7 @@ def onexit():
         gps.pinoff()
     except:None
     from . import power
-    power.ledon()
+    power.ledoff()
 
 import atexit
 atexit.register(onexit)
