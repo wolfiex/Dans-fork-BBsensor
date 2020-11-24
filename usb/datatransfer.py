@@ -2,7 +2,7 @@
 copy files if approved
 '''
 
-import os,re,glob
+import os,re,glob,time
 os.system('echo none | sudo tee /sys/class/leds/led0/trigger')
 
 def ledon():
@@ -18,6 +18,10 @@ DBs = glob.glob('/root/s*.db')
 
 checksum = 'b50ef6e46fec55460787f2b86fb59a099ec78a98'
 uuids = tuple(open('/root/BBSensor/usb/approved.dev','r'))
+
+# wait for usb to fully load
+time.sleep(10)
+
 
 usbs = []
 
