@@ -58,7 +58,7 @@ for u in usbs:
         dname = db.rsplit('/',1)[-1]
         print('Transferring',dname)
         mod = os.popen('date -r '+db+' "+%Y_%m_%d_%H_%M"').read()
-        cmd = 'cp -n %s /media/transferdata/%s_%s_%s'%(db,mod,SERIAL[:16],dname)
+        cmd = 'cp -n %s /media/transferdata/%s_%s_%s'%(db,SERIAL[:16],mod,dname)
         os.system(cmd)# -n for no clobber
         print(cmd)
         
