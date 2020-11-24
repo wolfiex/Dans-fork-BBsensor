@@ -24,10 +24,14 @@ for u in usbs:
     
     print ('Converting %(LABEL)s for use'%u)
 
+    os.system('sudo umount /media')
     os.system('sudo mount %(loc)s /media'%u)
-    try:
-        os.mkdir('/media/transferdata')
-    except OSError: print ("Creation of the directory %s failed")
+    
+    if not os.path.exists('/media/transferdata): 
+        try:
+            os.mkdir('/media/transferdata')
+        except OSError: print ("Creation of the directory transferdata failed")
+    else: print('Folder already exists')
     
     os.system('cp %s /media/transferdata/'%PEM)
     
