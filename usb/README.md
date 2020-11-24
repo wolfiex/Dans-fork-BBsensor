@@ -25,9 +25,16 @@ Checks attached devices,
 mounts them and checks authentication. 
 If this passes it copies the files 
 
-## Leds
-Off whilst writing
-On when finished
+## Leds- THESE ARE OVERWRITTEN BY OTHER PROGRAMS - so cannot be trusted. 
+I suggest trying other files and gauging the transfer time: 
+
+### Delays
+10 seconds before any transfer happens 
+
+## hypothetical leds 
+Constant. If dark - it may be writing. If lit - likely ok.  
+- Off whilst writing
+- On when finished
 
 
 
