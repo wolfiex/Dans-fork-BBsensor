@@ -36,7 +36,8 @@ Constant. If dark - it may be writing. If lit - likely ok.
 - Off whilst writing
 - On when finished
 
-
+### Logfile
+`/root/usb.log`
 
 ### Bootup setup
 This has been added to rc.local.
