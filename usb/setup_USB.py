@@ -27,7 +27,7 @@ for u in usbs:
     os.system('sudo umount /media')
     os.system('sudo mount %(loc)s /media'%u)
     
-    if not os.path.exists('/media/transferdata): 
+    if not os.path.exists('/media/transferdata'): 
         try:
             os.mkdir('/media/transferdata')
         except OSError: print ("Creation of the directory transferdata failed")
