@@ -38,7 +38,7 @@ for u in usbs:
     os.system('sudo umount /media')
     
     print ('Transfer complete.\n')
-    print ('You MUST add the code below to the file in BBSensor/usb/approved.dev - Include the quotation marks (")\n\n')
+    print ('You MUST add the code below to the file in BBSensor/usb/approved.dev \n- Include the quotation marks (")\n\n')
     print(u['UUID'])
     print ('')
 
