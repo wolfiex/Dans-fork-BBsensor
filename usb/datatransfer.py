@@ -39,7 +39,7 @@ for u in usbs:
     os.system('sudo mount %(loc)s /media'%u)
     
     if u['UUID'] not in uuids:
-        print('UUID not allowed: %(UUDI)s - %(LABEL)'%s)
+        print('UUID not allowed: %(UUDI)s - %(LABEL)'%u)
         continue
     if not os.path.exists('/media/transferdata'): 
         print('FAILED on %(LABEL)s'%u)
