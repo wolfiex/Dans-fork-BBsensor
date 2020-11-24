@@ -55,7 +55,11 @@ fi
 # transfer rules of usb transfer if they dont exist and reboot. 
 if [ ! -f "/etc/udev/rules.d/optional_usb.rules" ]; then
     echo "Adding USB transfer rules";
+
+    chmod a+x /root/BBSensor/usb/*;
     cp /root/BBSensor/usb/optional_usb.rules /etc/udev/rules.d/;
+    chmod a+x /etc/udev/rules.d/optional_usb.rules;
+
     sudo reboot
 fi
 
