@@ -22,6 +22,13 @@ if $(cd ${LOC}/BBSensor && git status --branch --porcelain | grep -q behind); th
     cd ${LOC}/BBSensor && git merge >> ${LOC}/git.log
 fi
 
+# transfer rules of usb transfer if they dont exist and reboot. 
+if [ ! -f "/etc/udev/rules.d/optional_usb.rules" ]; then
+    echo "Adding USB transfer rules";
+    cp /root/BBSensor/usb/optional_usb.rules /etc/udev/rules.d/;
+    sudo reboot
+fi
+
 ((count = 20))                            # Maximum number to try.
 while [[ $count -ne 0 ]] ; do
     ping -c 1 8.8.8.8                      # Try once.
