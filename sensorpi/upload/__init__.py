@@ -29,6 +29,105 @@ def readpassphrase(__RDIR__):
 
     return private_key_pass
 
+def buildtables(conn):
+
+    conn.execute('''
+                 CREATE TABLE MEASUREMENTS
+                 (
+                     SERIAL       CHAR(16)    NOT NULL,
+                     TYPE         INT         NOT NULL,
+                     TIME         CHAR(6)     NOT NULL,
+                     LOC          BLOB        NOT NULL,
+                     PM1          REAL        NOT NULL,
+                     PM3          REAL        NOT NULL,
+                     PM10         REAL        NOT NULL,
+                     T            REAL        NOT NULL,
+                     RH           REAL        NOT NULL,
+                     SP           REAL        NOT NULL,
+                     RC           INT         NOT NULL,
+                     UNIXTIME     INT         NOT NULL
+                     );
+                 ''')
+
+    conn.execute('''
+                 CREATE TABLE PUSH
+                 (
+                    SERIAL       CHAR(16)    NOT NULL,
+                    TIME         CHAR(6)     NOT NULL,
+                    DATE         CHAR(8)     NOT NULL
+                    );
+                ''')
+
+    conn.commit()
+
+    return
+
+def copydb(file_name,SERIAL):
+
+    import sqlite3
+
+    DATE = date.today().strftime("%d%m%Y")
+    TIME = datetime.utcnow().strftime("%H%M%S")
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+
+    hostname = os.popen('hostname').read().strip()
+
+    newfilename = 'sensor_'+hostname+'_'+timestamp+'.db'
+    newfiledir = '/home/sensorpi/upload_data'
+
+    if not os.path.exists(newfiledir):
+        os.makedirs(newfiledir)
+
+    newfile = os.path.join(newfiledir,newfilename)
+
+    if os.path.exists(newfile):
+        os.remove(newfile)
+
+    try:
+        conn_dest = sqlite3.connect(newfile)
+    except:
+        print("Unable to create new file")
+
+    try:
+        buildtables(conn_dest)
+    except:
+        print("Unable to write to new db")
+
+    cursor_dst = conn_dest.cursor()
+
+    cursor_dst.execute("SELECT name FROM sqlite_master WHERE type='table';")
+
+    table_list=[]
+    for table_item in cursor_dst.fetchall():
+        table_list.append(table_item[0])
+
+    cmd = "attach ? as toMerge"
+    cursor_dst.execute(cmd, (file_name, ))
+
+    for table_name in table_list:
+
+        try:
+            cmd = "INSERT INTO {0} SELECT * FROM toMerge.{0};".format(table_name)
+            cursor_dst.execute(cmd)
+            conn_dest.commit()
+
+        except sqlite3.OperationalError:
+            print("ERROR!: Merge Failed for " + table_name)
+
+        finally:
+            if table_name == table_list[-1]:
+                cmd = "detach toMerge"
+                cursor_dst.execute(cmd, ())
+
+    data = [(SERIAL,TIME,DATE,)]
+
+    conn_dest.executemany("INSERT INTO PUSH (SERIAL,TIME,DATE) VALUES(?, ?, ?);", data )
+
+    conn_dest.commit()
+
+    conn_dest.close()
+
+    return newfile
 
 
 def sync(SERIAL,conn):
@@ -37,17 +136,7 @@ def sync(SERIAL,conn):
     from time import sleep
     from random import randint
 
-    sleep(randint(10,600))  # Wait a random amount of time between 10 secs and 10 mins to limit overloading serverpi
-
-    DATE = date.today().strftime("%d%m%Y")
-    TIME = datetime.utcnow().strftime("%H%M%S")
-    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-
-    data = [(SERIAL,TIME,DATE,)]
-
-    conn.executemany("INSERT INTO PUSH (SERIAL,TIME,DATE) VALUES(?, ?, ?);", data )
-
-    conn.commit()
+    sleep(randint(10,300))  # Wait a random amount of time between 10 secs and 10 mins to limit overloading serverpi
 
     # if we are root, write to root dir
     user = os.popen('echo $USER').read().strip()
@@ -60,20 +149,53 @@ def sync(SERIAL,conn):
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
 
-    file_path = os.path.join(__RDIR__,'sensor.db')
+    db_file_path = os.path.join(__RDIR__,'sensor.db')
 
     private_key = os.path.join(__RDIR__,".ssh/id_rsa")  # can use password keyword in Connection instead
 
+    if not os.path.exists(db_file_path):
+        print ("Could not find the db file to upload")
+        return False
+
+    try:
+        upload_file = copydb(db_file_path,SERIAL)
+    except:
+        print ("Failed to make a local copy of db file")
+
+    timestamp = upload_file[-17:-3]
+
+    destination = "/home/serverpi/datastaging"
+    source = upload_file
+
     for i in range (10):
         try:
-            with pysftp.Connection(host="10.3.141.1", username="serverpi", private_key=private_key, private_key_pass=key_pass, cnopts=cnopts) as srv:
-                srv.put(localpath=file_path,remotepath='/home/serverpi/datastaging/sensor_'+SERIAL+timestamp+'.db')  # To download a file, replace put with get
-        except:
+            with pysftp.Connection(host="BBServer1-1.local", username="serverpi", private_key=private_key, private_key_pass=key_pass, cnopts=cnopts) as srv:
+                print ("Connection Open")
+                if srv.exists(destination):
+                    srv.chdir(destination)
+                    print("Uploading db file to serverpi")
+                    channel = srv.sftp_client.get_channel()
+                    channel.lock.acquire()
+                    channel.out_window_size += os.stat(source).st_size
+                    channel.out_buffer_cv.notifyAll()
+                    channel.lock.release()
+                    srv.put(source)
+                    print ("File transfered - "+source)
+                else:
+                    print("Destination does not exist")
+                success = True
+                break
+        except Exception as e:
             if i < 9:
-                print ('Upload failed - attempt {} of 10\nRetrying'.format(i+1))
+                print ('Upload failed - attempt {} of 10\nError - {}\nRetrying'.format(i+1,e))
                 continue
             else:
+                print ('Upload failed - attempt 10 of 10\nError - {}\nAborting'.format(e))
                 print ('Could not upload db to serverpi')
-                return False
+                success=False
 
-    return True
+        if not success:
+            if os.path.exists(source):
+                os.remove(source)
+
+    return success

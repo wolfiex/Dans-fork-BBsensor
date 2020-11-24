@@ -1,22 +1,46 @@
-'''
+#!/usr/bin/env/python3
+# -*- coding: utf-8 -*-
+
+"""
 SensorPI LIBRARY
 
 A library to run the portable sensors for the born in brandford project.
 
-Developers:
-    D.Ellis CEMAC @ UOLeeds
-    C.Symonds CEMAC @ UOLeeds
-PIs:
-    K.Pringle UOLeeds
-    J.McQuaid UOLeeds
+Project: Born In Bradford Breathes
 
-'''
+Usage : python3 -m sensorpi
+
+"""
+
+# Built-in/Generic Imports
+import time,sys,os
+from datetime import date,datetime
+
+#Own Modules
+from .tests import pyvers
+from .exitcondition import GPIO
+from . import power
+from .crypt import scramble
+from . import db
+from .db import builddb
+from . import upload
+from . import gps
+from . import R1
+
+__author__ = "Dan Ellis, Christopher Symonds"
+__copyright__ = "Copyright 2020, University of Leeds"
+__credits__ = ["Dan Ellis", "Christopher Symonds", "Jim McQuaid", "Kirsty Pringle"]
+__license__ = "MIT"
+__version__ = "0.3.4"
+__maintainer__ = "C. Symonds"
+__email__ = "C.C.Symonds@leeds.ac.uk"
+__status__ = "Prototype"
+
+
 ########################################################
 ##  Imports and constants
 ########################################################
 
-import time,sys,os
-from datetime import date,datetime
 ## runtime constants
 DEBUG  = True
 SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
@@ -34,6 +58,11 @@ SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 ### hours (not inclusive)
 NIGHT = [18,7] # stop 7-7
 SCHOOL = [9,15] # stop 10 -2
+
+loading = power.blink_nonblock_inf()
+gpsdaemon = gps.init(wait=False)
+alpha = R1.alpha
+if DHT_module: from . import DHT
 
 ########################################################
 ## Bluetooth setup
@@ -55,31 +84,9 @@ SCHOOL = [9,15] # stop 10 -2
 #         print('debug using bluetooth serial: on')
 #     except:print('no bluetooth serial')
 
-########################################################
-########################################################
-
-
-
 
 ########################################################
-## Lib Imports
 ########################################################
-
-from .tests import pyvers
-# from .geolocate import lat,lon,alt
-from .exitcondition import GPIO
-from . import power
-loading = power.blink_nonblock_inf()
-
-from .crypt import scramble
-from . import db
-from .db import builddb
-from . import upload
-if DHT_module: from . import DHT
-from . import gps
-gpsdaemon = gps.init(wait=False)
-from . import R1
-alpha = R1.alpha
 
 def interrupt(channel):
     print ("Pull Down on GPIO 21 detected: exiting program")
@@ -197,22 +204,22 @@ while True:
     hour = datetime.now().hour#gps.last.copy()['gpstime'][:2]
 
 
-    if (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7 
+    if (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
         ''' hometime - SLEEP '''
-        if DEBUG: print('NightSleep')
+        if DEBUG: print('NightSleep, hour={}'.format(hour))
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
         power.ledon()
         SAMPLE_LENGTH = -1 # Dont run !  SAMPLE_LENGTH_slow
-        time.sleep(60*60) # sleep 1h
+        time.sleep(30*60) # sleep 0.5h
         TYPE = 4
 
     elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]): # >7 <9 & >15 <18 utc (9-15)
-        if DEBUG: print('@ School')
+        if DEBUG: print('@ School, hour={}'.format(hour))
         ''' at school - try upload'''
         ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
-    
+
         DATE = date.today().strftime("%d/%m/%Y")
-        
+
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
 
         if DATE != LAST_SAVE:
@@ -236,14 +243,6 @@ while True:
                     print('rebuilding db')
                     builddb.builddb(db.conn)
 
-                    ## update time!
-                    os.system('sudo timedatectl &')
-
-                    ## run git pull
-                    #################
-
-                    #################
-
                     while loading.isAlive():
                         power.stopblink(loading)
                         loading.join(.1)
@@ -251,19 +250,27 @@ while True:
                     print('upload complete', DATE, hour)
                     LAST_SAVE = DATE
 
+                ## update time!
+                os.system('sudo timedatectl &')
+
+                ## run git pull
+                branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
+                os.system("git fetch -q origin {}".format(branchname))
+                if not (os.system("git status --branch --porcelain | grep -q behind")):
+                    STOP = True
 
         SAMPLE_LENGTH = SAMPLE_LENGTH_slow
 
         # sleep for 18 minutes - check break statement every minute
 
         # check if we are trying to stop the device every minute
-        for i in range(12):
-            time.sleep(5*60) #12 sets of 5 min
+        for i in range(5):
+            time.sleep(5*60) #5 sets of 5 min
             if STOP:break
 
         TYPE = 4
     else:
-        ''' en route - FASTSAMPLE'''
+        if DEBUG: print('en route - FASTSAMPLE, hour={}'.format(hour))
 
         print (gpsdaemon.is_alive())
 
@@ -282,3 +289,5 @@ print('exiting- STOP:',STOP)
 db.conn.commit()
 db.conn.close()
 power.ledon()
+if not (os.system("git status --branch --porcelain | grep -q behind")):
+    os.system("sudo reboot")

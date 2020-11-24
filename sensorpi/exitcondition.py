@@ -53,10 +53,11 @@ def onexit():
         print("natural death")
 
     print('Attempting to exit in a controlled Manner \n',datetime.datetime.now(),'\n')
-    
 
-    from .import R1
-    R1.alpha.off()
+
+    from . import R1
+    try : R1.alpha.off()
+    except:None
     from . import db
     try:db.conn.commit()
     except db.sqlite3.ProgrammingError: None
