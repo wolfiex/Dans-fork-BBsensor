@@ -12,21 +12,6 @@ Usage : python3 -m sensorpi
 
 """
 
-# Built-in/Generic Imports
-import time,sys,os
-from datetime import date,datetime
-
-#Own Modules
-from .tests import pyvers
-from .exitcondition import GPIO
-from . import power
-from .crypt import scramble
-from . import db
-from .db import builddb
-from . import upload
-from . import gps
-from . import R1
-
 __author__ = "Dan Ellis, Christopher Symonds"
 __copyright__ = "Copyright 2020, University of Leeds"
 __credits__ = ["Dan Ellis", "Christopher Symonds", "Jim McQuaid", "Kirsty Pringle"]
@@ -36,9 +21,24 @@ __maintainer__ = "C. Symonds"
 __email__ = "C.C.Symonds@leeds.ac.uk"
 __status__ = "Prototype"
 
+# Built-in/Generic Imports
+import time,sys,os
+from datetime import date,datetime
+from re import sub
+
+#Own Modules
+from .tests import pyvers
+from .exitcondition import GPIO
+from . import power
+from .crypt import scramble
+from . import db
+from .db import builddb, __RDIR__
+from . import upload
+from . import gps
+from . import R1
 
 ########################################################
-##  Imports and constants
+##  Running Parameters
 ########################################################
 
 ## runtime constants
@@ -49,6 +49,7 @@ STOP   = False
 TYPE   = 2 # { 1 = static, 2 = dynamic, 3 = isolated_static, 4 = home/school}
 LAST_SAVE = None
 DHT_module = False
+if DHT_module: from . import DHT
 
 SAMPLE_LENGTH_slow = 60*5
 SAMPLE_LENGTH_fast = 60*1 # in seconds
@@ -62,7 +63,6 @@ SCHOOL = [9,15] # stop 10 -2
 loading = power.blink_nonblock_inf()
 gpsdaemon = gps.init(wait=False)
 alpha = R1.alpha
-if DHT_module: from . import DHT
 
 ########################################################
 ## Bluetooth setup
@@ -83,8 +83,7 @@ if DHT_module: from . import DHT
 #         # bserial.close()
 #         print('debug using bluetooth serial: on')
 #     except:print('no bluetooth serial')
-
-
+#
 ########################################################
 ########################################################
 
@@ -106,10 +105,23 @@ while loading.isAlive():
 
 
 ########################################################
+## Check for pre-existing LAST_SAVE value
 ########################################################
 
-
-
+if os.path.exists(os.path.join(__RDIR__,'.uploads')):
+    with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        if 'LAST_SAVE = ' in line:
+            LAST_SAVE = line[12:].strip()
+    if LAST_SAVE == None:
+        with open (os.path.join(__RDIR__,'.uploads'),'a') as f:
+            f.write('LAST_SAVE = None\n')
+        LAST_SAVE = 'None'
+else:
+    with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+        f.write("LAST_SAVE = None\n")
+    LAST_SAVE = 'None'
 
 ########################################################
 ## Main Loop
@@ -194,7 +206,7 @@ while True:
         #if DEBUG:
                 # if bserial : os.system("screen -S ble -X stuff 'sudo echo \"%s\" > /dev/rfcomm1 ^M' " %'_'.join([str(i) for i in d[-1]]))
 
-        if DEBUG: print('saveddb')
+        if DEBUG: print('DB saved')
 
         power.ledon()
 
@@ -247,7 +259,13 @@ while True:
                         power.stopblink(loading)
                         loading.join(.1)
 
-                    print('upload complete', DATE, hour)
+                    if DEBUG: print('upload complete', DATE, hour)
+
+                    with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+                        lines=f.readlines()
+                    with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+                        for line in lines:
+                            f.write(sub(r'LAST_SAVE = '+LAST_SAVE, 'LAST_SAVE = '+DATE, line))
                     LAST_SAVE = DATE
 
                 ## update time!
