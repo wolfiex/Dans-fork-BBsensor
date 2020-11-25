@@ -234,6 +234,7 @@ while True:
 
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
 
+        print(DATE,LAST_SAVE)
         if DATE != LAST_SAVE:
             if upload.online():
                 #check if connected to wifi
@@ -264,7 +265,7 @@ while True:
                             f.write(sub(r'LAST_SAVE = '+LAST_SAVE, 'LAST_SAVE = '+DATE, line))
                     LAST_SAVE = DATE
 
-                    
+                print('stopping blinking')                    
                 while loading.isAlive():
                     power.stopblink(loading)
                     loading.join(.1)
@@ -286,7 +287,8 @@ while True:
 
         # check if we are trying to stop the device every minute
         for i in range(5):
-            time.sleep(5*60) #5 sets of 5 min
+            time.sleep(1*60) #5 sets of 5 min
+            print('stop = ',STOP)
             if STOP:break
 
         TYPE = 4
