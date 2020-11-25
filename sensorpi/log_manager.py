@@ -10,7 +10,7 @@ else: __RDIR__ = '/home/'+user
 logfile = __RDIR__+'/sensor.log'
 
 
-def setup(name):
+def getlog(name):
 
   log = logging.getLogger(name) ## if running interactively with ipython, replace this with a descriptive string
   log.setLevel(logging.DEBUG)
