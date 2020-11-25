@@ -19,7 +19,9 @@ def getlog(name):
   '''
   Function to set up a new logger for each module
   '''
-
+  name = str(name)
+  if name=='': name = 'unknown'
+  
   log = logging.getLogger(name) ## if running interactively with ipython, replace this with a descriptive string
   log.setLevel(logging.DEBUG)
 
