@@ -7,7 +7,8 @@ import logging
 if user == 'root': __RDIR__ = '/root'
 else: __RDIR__ = '/home/'+user
 
-logfile = __RDIR__+'/sensor.log'
+logfile = __RDIR__+'/script.log'
+print('logging in ',logfile)
 
 
 console_level = logging.INFO
