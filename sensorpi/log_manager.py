@@ -44,4 +44,15 @@ def getlog(name):
   tofile.setLevel(logging.DEBUG)
   log.addHandler(tofile)
   
+  
+  '''
+  Make log printlike
+  '''
+  def print(*argv): 
+    return log.info(' '.join(map(str,argv))) 
+  
+  log.print = print
+  
+  
+  
   return log
