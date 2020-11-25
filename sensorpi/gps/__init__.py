@@ -13,11 +13,13 @@ import RPi.GPIO as GPIO
 from threading import Thread,Lock,Event
 lock = Lock()
 import serial,time
+from .. import log_manager
+log = log_manager(__file__)
 
 last = {'gpstime':None}
 ser = None
 gpio = False#True
-print('GPIO GPS:',gpio)
+log.info('GPIO GPS:',gpio)
 pin = 23#18 # BCM 12 / GPIO 18
 
 stop_event = Event()
@@ -44,7 +46,7 @@ def connect():
     global ser,gpio
     if gpio:
         ser = serial.Serial('/dev/ttyS0')#,9600)
-        print('GPIO GPS on /dev/ttyS0')
+        log.debug('GPIO GPS on /dev/ttyS0')
     else:
         for i in range(10):
             try:# each unplug registers as a new number, we dont expect more than 10 unplugs without a restart
@@ -52,7 +54,7 @@ def connect():
                 #except:
                 ser = serial.Serial('/dev/ttyACM%d'%i)
 
-                print( 'Connected serial on /dev/ttyACM%d'%i)
+                log.debug( 'Connected serial on /dev/ttyACM%d'%i)
                 break
             except:continue
     ser.flushInput()
@@ -68,7 +70,7 @@ def bg_poll(ser,lock,stop_event):
                     line = str(ser.readline())
 
                 except serial.SerialException:
-                    print('lost connection - reconnecting')
+                    log.debug('lost connection - reconnecting')
                     #last = {}
                     connect()
                     time.sleep(5)
@@ -94,7 +96,7 @@ def init(wait = False):
 
 
     connect()
-    print('############# GPS daemon ############')
+    log.info('############# GPS daemon ############')
     stop_event.clear()
 
     daemon = Thread(target=bg_poll, args=(ser,lock,stop_event), name='location_daemon')
@@ -103,21 +105,21 @@ def init(wait = False):
 
     if wait:
         while last == {'gpstime':None}:
-            print('waiting for gps result')
+            log.info('waiting for gps result')
             time.sleep(4)
 
         while last['gpstime'] == '':
-            print(last)
-            print('GPS Connected, but not reading a result - please check volatge')
+            log.debug(last)
+            log.debug('GPS Connected, but not reading a result - please check volatge')
             time.sleep(4)
 
         while len(last['gpstime']) !=6 :
-            print(last)
-            print('GPS Connected, but not correct')
+            log.debug(last)
+            log.debug('GPS Connected, but not correct')
             time.sleep(1)
 
 
 
-    print('GPS connected')
-    print(last)
+    log.info('GPS connected')
+    log.debug(last)
     return daemon
