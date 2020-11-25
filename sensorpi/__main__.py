@@ -68,10 +68,23 @@ while loading.isAlive():
 
 
 ########################################################
+## Check for pre-existing LAST_SAVE value
 ########################################################
 
-
-
+if os.path.exists(os.path.join(__RDIR__,'.uploads')):
+    with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        if 'LAST_SAVE = ' in line:
+            LAST_SAVE = line[12:].strip()
+    if LAST_SAVE == None:
+        with open (os.path.join(__RDIR__,'.uploads'),'a') as f:
+            f.write('LAST_SAVE = None\n')
+        LAST_SAVE = 'None'
+else:
+    with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+        f.write("LAST_SAVE = None\n")
+    LAST_SAVE = 'None'
 
 ########################################################
 ## Main Loop
@@ -205,6 +218,13 @@ while True:
                         loading.join(.1)
 
                     print('upload complete', DATE, hour)
+
+                    with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+                        lines=f.readlines()
+                    with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+                        for line in lines:
+                            f.write(sub(r'LAST_SAVE = '+LAST_SAVE, 'LAST_SAVE = '+DATE, line))
+
                     LAST_SAVE = DATE
 
     elif (hour < SCHOOL[0]) or (hour > SCHOOL[1]):
