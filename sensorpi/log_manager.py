@@ -2,7 +2,7 @@
 The logging file
 '''
 
-import logging
+import logging,os
 
 user = os.popen('echo $USER').read().strip()
 if user == 'root': __RDIR__ = '/root'
