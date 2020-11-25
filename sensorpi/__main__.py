@@ -57,8 +57,8 @@ SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 # assert SAMPLE_LENGTH > 10
 
 ### hours (not inclusive)
-NIGHT = [18,7] # stop 7-7
-SCHOOL = [9,15] # stop 10 -2
+NIGHT = [23,7] # stop 7-7
+SCHOOL = [9,23] # stop 10 -2
 
 loading = power.blink_nonblock_inf()
 gpsdaemon = gps.init(wait=False)
