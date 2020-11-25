@@ -241,14 +241,14 @@ while True:
                 loading = power.blink_nonblock_inf_update()
                 ## SYNC
                 upload_success = upload.sync(SERIAL,db.conn)
-
+                print(upload_success,'us')
                 if upload_success:
                     cursor=db.conn.cursor()
                     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
                     table_list=[]
                     for table_item in cursor.fetchall():
                         table_list.append(table_item[0])
-
+                    print(table_list)
                     for table_name in table_list:
                         print ('Dropping table : '+table_name)
                         db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
