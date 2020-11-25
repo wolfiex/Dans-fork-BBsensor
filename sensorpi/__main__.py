@@ -166,7 +166,7 @@ def runcycle():
 
             # if DEBUG: print(rh,temp,loc)
 
-            results.append( [SERIAL,TYPE,loc['gpstime'][:6],scramble(('%s_%s_%s'%(loc['lat'],loc['lon'],loc['alt'])).encode('utf-8')),float(pm['PM1']),float(pm['PM2.5']),float(pm['PM10']),float(temp),float(rh),float(pm['Sampling Period']),int(pm['Reject count glitch']),unixtime,] )
+            results.append( [SERIAL,TYPE,loc['gpstime'][:6],scramble(('%(lat)s_%(lon)s_%(alt)s'%loc['lat']).encode('utf-8')),float(pm['PM1']),float(pm['PM2.5']),float(pm['PM10']),float(temp),float(rh),float(pm['Sampling Period']),int(pm['Reject count glitch']),unixtime,] )
 
         if STOP:break
         time.sleep(.1) # keep as 1
@@ -255,10 +255,6 @@ while True:
                     print('rebuilding db')
                     builddb.builddb(db.conn)
 
-                    while loading.isAlive():
-                        power.stopblink(loading)
-                        loading.join(.1)
-
                     if DEBUG: print('upload complete', DATE, hour)
 
                     with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
@@ -268,6 +264,13 @@ while True:
                             f.write(sub(r'LAST_SAVE = '+LAST_SAVE, 'LAST_SAVE = '+DATE, line))
                     LAST_SAVE = DATE
 
+                    
+                while loading.isAlive():
+                    power.stopblink(loading)
+                    loading.join(.1)
+
+                    
+                    
                 ## update time!
                 os.system('sudo timedatectl &')
 
