@@ -236,7 +236,9 @@ while True:
 
         print(DATE,LAST_SAVE)
         if DATE != LAST_SAVE:
+            print('dt')
             if upload.online():
+                print('online')
                 #check if connected to wifi
                 loading = power.blink_nonblock_inf_update()
                 ## SYNC
