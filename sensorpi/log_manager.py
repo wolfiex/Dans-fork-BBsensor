@@ -4,6 +4,7 @@ The logging file
 
 import logging
 
+user = os.popen('echo $USER').read().strip()
 if user == 'root': __RDIR__ = '/root'
 else: __RDIR__ = '/home/'+user
 
