@@ -13,8 +13,8 @@ import RPi.GPIO as GPIO
 from threading import Thread,Lock,Event
 lock = Lock()
 import serial,time
-from .. import log_manager
-log = log_manager(__file__)
+from ..log_manager import getlog
+log = getlog(__file__)
 
 last = {'gpstime':None}
 ser = None
