@@ -2,7 +2,7 @@
 Ensure we can do a controlled exit when pressing ctrl+c
 '''
 ### Failure on exit params
-import sys,time,datetime
+import sys,time,datetime,traceback
 
 import RPi.GPIO as GPIO
 
@@ -38,6 +38,7 @@ class ExitHooks(object):
 
     def exc_handler(self, exc_type, exc, *args):
         self.exception = exc
+        print("".join(traceback.format_exception(exc_type, exc, *args)))
 
 hooks = ExitHooks()
 hooks.hook()
@@ -49,6 +50,7 @@ def onexit():
         print("death by sys.exit(%d)" % hooks.exit_code)
     elif hooks.exception is not None:
         print("death by exception: %s" % hooks.exception)
+        
     else:
         print("natural death")
 
