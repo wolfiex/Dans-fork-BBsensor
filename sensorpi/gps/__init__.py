@@ -19,7 +19,7 @@ log = getlog(__file__)
 last = {'gpstime':None}
 ser = None
 gpio = False#True
-log.info('GPIO GPS:',gpio)
+log.info('GPIO GPS:%s'%gpio)
 pin = 23#18 # BCM 12 / GPIO 18
 
 stop_event = Event()
