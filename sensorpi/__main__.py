@@ -239,22 +239,22 @@ while True:
 
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
 
-        print(DATE,LAST_SAVE)
+        print('savecondition:', DATE,LAST_SAVE)
         if DATE != LAST_SAVE:
             if upload.online():
                 print('online')
                 #check if connected to wifi
                 loading = power.blink_nonblock_inf_update()
                 ## SYNC
-                upload_success = False#upload.sync(SERIAL,db.conn)
-                print(upload_success,'us we disabled this')
+                upload_success = upload.sync(SERIAL,db.conn)
+                #print(upload_success,'us we disabled this')
                 if upload_success:
                     cursor=db.conn.cursor()
                     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
                     table_list=[]
                     for table_item in cursor.fetchall():
                         table_list.append(table_item[0])
-                    print(table_list)
+                    #print(table_list)
                     for table_name in table_list:
                         log.debug('Dropping table : '+table_name)
                         db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
@@ -279,7 +279,7 @@ while True:
                     
                     
                 ## update time!
-                os.system('sudo timedatectl &')
+                log.info(os.popen('sudo timedatectl &').read())
 
                 ## run git pull
                 branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
@@ -292,9 +292,8 @@ while True:
         # sleep for 18 minutes - check break statement every minute
 
         # check if we are trying to stop the device every minute
-        for i in range(5):
-            time.sleep(1*60) #5 sets of 5 min
-            log.debug('stop = %s'%STOP)
+        for i in range(14):
+            time.sleep(60) #5 sets of 5 min
             if STOP:break
 
         TYPE = 4
@@ -319,4 +318,6 @@ db.conn.commit()
 db.conn.close()
 power.ledon()
 if not (os.system("git status --branch --porcelain | grep -q behind")):
+    now = now = datetime.utcnow()now.strftime("%F")
+    log.critical('Updates available. We need to reboot. Shutting down at %s'%now)
     os.system("sudo reboot")
