@@ -28,7 +28,7 @@ from re import sub
 from .log_manager import getlog
 log = getlog(__name__)
 print = log.print ## replace print function with a wrapper
-log.info('########################################################'.replace('#','~')
+log.info('########################################################'.replace('#','~'))
 
 #Own Modules
 from .tests import pyvers
