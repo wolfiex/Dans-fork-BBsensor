@@ -28,7 +28,7 @@ from re import sub
 from .log_manager import getlog
 log = getlog(__name__)
 print = log.print ## replace print function with a wrapper
-log.info('########################################################')
+log.info('########################################################'.replace('#','~')
 
 #Own Modules
 from .tests import pyvers
@@ -98,11 +98,10 @@ def interrupt(channel):
 
 GPIO.add_event_detect(21, GPIO.RISING, callback=interrupt, bouncetime=300)
 
-for i in range(3): log.debug('')
 log.info('########################################################')
 log.info('starting {}'.format(datetime.now()))
 log.info('########################################################')
-for i in range(3): log.debug('')
+
     
 R1.clean(alpha)
 
