@@ -25,13 +25,15 @@ __status__ = "Prototype"
 import time,sys,os
 from datetime import date,datetime
 from re import sub
+
+# Check Modules
+from .tests import pyvers
 from .log_manager import getlog
 log = getlog(__name__)
 print = log.print ## replace print function with a wrapper
 log.info('########################################################'.replace('#','~'))
 
-#Own Modules
-from .tests import pyvers
+# Exec modules
 from .exitcondition import GPIO
 from . import power
 from .crypt import scramble
