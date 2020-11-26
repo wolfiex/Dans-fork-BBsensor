@@ -27,7 +27,7 @@ from datetime import date,datetime
 from re import sub
 from .log_manager import getlog
 log = getlog(__name__)
-print = log.print ## replace print function with a wrapper
+#print = log.print ## replace print function with a wrapper
 log.info('########################################################'.replace('#','~'))
 
 #Own Modules
