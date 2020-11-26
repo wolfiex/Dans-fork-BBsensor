@@ -12,8 +12,29 @@ logfile = __RDIR__+'/script.log'
 print('logging in ',logfile)
 
 
+
+
 console_level = logging.INFO
 
+'''
+Console Stream
+'''
+console = logging.StreamHandler()
+formatter = logging.Formatter('%(levelname)-10s  %(message)s')
+console.setFormatter(formatter)
+console.setLevel(console_level)
+
+'''
+File Debug
+'''
+tofile = logging.FileHandler(logfile, mode='a')
+formatter = logging.Formatter('%(asctime)s ~ %(name)s ~ %(levelname)s ~ %(message)s')
+tofile.setFormatter(formatter)
+tofile.setLevel(logging.DEBUG)
+  
+
+  
+  
 
 def getlog(name):
   '''
@@ -25,25 +46,16 @@ def getlog(name):
   log = logging.getLogger(name) ## if running interactively with ipython, replace this with a descriptive string
   log.setLevel(logging.DEBUG)
 
+  
   '''
   Console Stream
   '''
-  console = logging.StreamHandler()
-  formatter = logging.Formatter('%(levelname)-10s  %(message)s')
-  console.setFormatter(formatter)
-  console.setLevel(console_level)
   log.addHandler(console)
-
 
   '''
   File Debug
   '''
-  tofile = logging.FileHandler(logfile, mode='a')
-  formatter = logging.Formatter('%(asctime)s ~ %(name)s ~ %(levelname)s ~ %(message)s')
-  tofile.setFormatter(formatter)
-  tofile.setLevel(logging.DEBUG)
   log.addHandler(tofile)
-  
   
   '''
   Make log printlike
