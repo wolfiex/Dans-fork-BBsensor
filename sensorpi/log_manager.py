@@ -51,7 +51,8 @@ def getlog(name):
   '''
   Remove any pre-existing handlers
   '''
-  while log.hasHandlers():
+  print(log.handlers)
+  while len(log.handlers):
     log.removeHandler(log.handlers[0])
     
     
