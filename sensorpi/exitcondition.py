@@ -4,7 +4,7 @@ Ensure we can do a controlled exit when pressing ctrl+c
 ### Failure on exit params
 import sys,time,datetime,traceback
 import RPi.GPIO as GPIO
-from ..log_manager import getlog
+from .log_manager import getlog
 log = getlog(__file__)
 
 '''
