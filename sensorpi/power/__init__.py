@@ -47,6 +47,7 @@ def threadblinkupdate():
 
 def threadblinkupdate():
     global terminate
+    teminate = True
     while terminate:
         ledon()
         time.sleep(3)
