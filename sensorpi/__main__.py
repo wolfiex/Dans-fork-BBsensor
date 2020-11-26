@@ -16,7 +16,7 @@ __author__ = "Dan Ellis, Christopher Symonds"
 __copyright__ = "Copyright 2020, University of Leeds"
 __credits__ = ["Dan Ellis", "Christopher Symonds", "Jim McQuaid", "Kirsty Pringle"]
 __license__ = "MIT"
-__version__ = "0.3.4"
+__version__ = "0.3.6"
 __maintainer__ = "C. Symonds"
 __email__ = "C.C.Symonds@leeds.ac.uk"
 __status__ = "Prototype"
@@ -63,7 +63,7 @@ SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 # assert SAMPLE_LENGTH > 10
 
 ### hours (not inclusive)
-NIGHT = [19,7] # stop 7-7
+NIGHT = [18,6] # stop 7-7
 SCHOOL = [9,14] # stop 10 -2
 
 loading = power.blink_nonblock_inf()
