@@ -50,7 +50,7 @@ def getlog(name):
   '''
   Remove any pre-existing handlers
   '''
-  log.critical(log.handlers)
+
   while len(log.handlers):
     log.removeHandler(log.handlers[0])
     
