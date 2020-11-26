@@ -50,6 +50,7 @@ LAST_SAVE = None
 DHT_module = False
 if DHT_module: from . import DHT
 log = getlog(__name__)
+print = log.print
 
 
 SAMPLE_LENGTH_slow = 60*5
