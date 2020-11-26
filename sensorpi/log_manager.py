@@ -44,14 +44,17 @@ def getlog(name):
   if name=='': name = 'unknown'
   
   log = logging.getLogger(name) ## if running interactively with ipython, replace this with a descriptive string
+
+    
+  log.setLevel(logging.DEBUG)
   
-  # remove existing handlers
+  '''
+  Remove any pre-existing handlers
+  '''
   while log.hasHandlers():
     log.removeHandler(log.handlers[0])
     
-  log.setLevel(logging.DEBUG)
-
-  
+    
   '''
   Console Stream
   '''
