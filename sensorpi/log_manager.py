@@ -44,8 +44,7 @@ def getlog(name):
   if name=='': name = 'unknown'
   
   log = logging.getLogger(name) ## if running interactively with ipython, replace this with a descriptive string
-
-    
+  log.propagate = False
   log.setLevel(logging.DEBUG)
   
   '''
