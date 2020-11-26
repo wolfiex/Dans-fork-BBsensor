@@ -25,6 +25,10 @@ __status__ = "Prototype"
 import time,sys,os
 from datetime import date,datetime
 from re import sub
+from .log_manager import getlog
+log = getlog(__name__)
+print = log.print ## replace print function with a wrapper
+log.info('########################################################')
 
 #Own Modules
 from .tests import pyvers
@@ -36,7 +40,6 @@ from .db import builddb, __RDIR__
 from . import upload
 from . import gps
 from . import R1
-from .log_manager import getlog
 ########################################################
 ##  Running Parameters
 ########################################################
@@ -49,8 +52,7 @@ TYPE   = 2 # { 1 = static, 2 = dynamic, 3 = isolated_static, 4 = home/school}
 LAST_SAVE = None
 DHT_module = False
 if DHT_module: from . import DHT
-log = getlog(__name__)
-print = log.print
+
 
 
 SAMPLE_LENGTH_slow = 60*5
