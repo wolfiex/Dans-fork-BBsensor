@@ -98,7 +98,7 @@ GPIO.add_event_detect(21, GPIO.RISING, callback=interrupt, bouncetime=300)
 
 for i in range(3): log.debug('')
 log.info('########################################################')
-log.info('starting',datetime.now())
+log.info('starting {}'.format(datetime.now()))
 log.info('########################################################')
 for i in range(3): log.debug('')
     
