@@ -12,21 +12,6 @@ Usage : python3 -m sensorpi
 
 """
 
-# Built-in/Generic Imports
-import time,sys,os
-from datetime import date,datetime
-
-#Own Modules
-from .tests import pyvers
-from .exitcondition import GPIO
-from . import power
-from .crypt import scramble
-from . import db
-from .db import builddb
-from . import upload
-from . import gps
-from . import R1
-
 __author__ = "Dan Ellis, Christopher Symonds"
 __copyright__ = "Copyright 2020, University of Leeds"
 __credits__ = ["Dan Ellis", "Christopher Symonds", "Jim McQuaid", "Kirsty Pringle"]
@@ -36,19 +21,41 @@ __maintainer__ = "C. Symonds"
 __email__ = "C.C.Symonds@leeds.ac.uk"
 __status__ = "Prototype"
 
+# Built-in/Generic Imports
+import time,sys,os
+from datetime import date,datetime
+from re import sub
 
+# Check Modules
+from .tests import pyvers
+from .log_manager import getlog
+log = getlog(__name__)
+print = log.print ## replace print function with a wrapper
+log.info('########################################################'.replace('#','~'))
+
+# Exec modules
+from .exitcondition import GPIO
+from . import power
+from .crypt import scramble
+from . import db
+from .db import builddb, __RDIR__
+from . import upload
+from . import gps
+from . import R1
 ########################################################
-##  Imports and constants
+##  Running Parameters
 ########################################################
 
 ## runtime constants
-DEBUG  = True
 SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
 DATE   = date.today().strftime("%d/%m/%Y")
 STOP   = False
 TYPE   = 2 # { 1 = static, 2 = dynamic, 3 = isolated_static, 4 = home/school}
 LAST_SAVE = None
 DHT_module = False
+if DHT_module: from . import DHT
+
+
 
 SAMPLE_LENGTH_slow = 60*5
 SAMPLE_LENGTH_fast = 60*1 # in seconds
@@ -56,13 +63,12 @@ SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 # assert SAMPLE_LENGTH > 10
 
 ### hours (not inclusive)
-NIGHT = [18,7] # stop 7-7
-SCHOOL = [9,15] # stop 10 -2
+NIGHT = [19,7] # stop 7-7
+SCHOOL = [9,14] # stop 10 -2
 
 loading = power.blink_nonblock_inf()
 gpsdaemon = gps.init(wait=False)
 alpha = R1.alpha
-if DHT_module: from . import DHT
 
 ########################################################
 ## Bluetooth setup
@@ -83,33 +89,48 @@ if DHT_module: from . import DHT
 #         # bserial.close()
 #         print('debug using bluetooth serial: on')
 #     except:print('no bluetooth serial')
-
-
+#
 ########################################################
 ########################################################
 
 def interrupt(channel):
-    print ("Pull Down on GPIO 21 detected: exiting program")
+    log.warning("Pull Down on GPIO 21 detected: exiting program")
     global STOP
     STOP = True
 
 GPIO.add_event_detect(21, GPIO.RISING, callback=interrupt, bouncetime=300)
 
-print('########################################################')
-print('starting',datetime.now())
+log.info('########################################################')
+log.info('starting {}'.format(datetime.now()))
+log.info('########################################################')
+
+    
 R1.clean(alpha)
 
 while loading.isAlive():
-    if DEBUG: print('stopping loading blink ...')
+    log.debug('stopping loading blink ...')
     power.stopblink(loading)
     loading.join(.1)
 
 
 ########################################################
+## Check for pre-existing LAST_SAVE value
 ########################################################
 
-
-
+if os.path.exists(os.path.join(__RDIR__,'.uploads')):
+    with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        if 'LAST_SAVE = ' in line:
+            LAST_SAVE = line[12:].strip()
+    if LAST_SAVE == None:
+        with open (os.path.join(__RDIR__,'.uploads'),'a') as f:
+            f.write('LAST_SAVE = None\n')
+        LAST_SAVE = 'None'
+else:
+    with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+        f.write("LAST_SAVE = None\n")
+    LAST_SAVE = 'None'
 
 ########################################################
 ## Main Loop
@@ -152,9 +173,8 @@ def runcycle():
             loc     = gps.last.copy()
             unixtime = int(datetime.utcnow().strftime("%s")) # to the second
 
-            # if DEBUG: print(rh,temp,loc)
 
-            results.append( [SERIAL,TYPE,loc['gpstime'][:6],scramble(('%s_%s_%s'%(loc['lat'],loc['lon'],loc['alt'])).encode('utf-8')),float(pm['PM1']),float(pm['PM2.5']),float(pm['PM10']),float(temp),float(rh),float(pm['Sampling Period']),int(pm['Reject count glitch']),unixtime,] )
+            results.append( [SERIAL,TYPE,loc['gpstime'][:6],scramble(('%(lat)s_%(lon)s_%(alt)s'%loc).encode('utf-8')),float(pm['PM1']),float(pm['PM2.5']),float(pm['PM10']),float(temp),float(rh),float(pm['Sampling Period']),int(pm['Reject count glitch']),unixtime,] )
 
         if STOP:break
         time.sleep(.1) # keep as 1
@@ -184,7 +204,6 @@ while True:
 
         ## run cycle
         d = runcycle()
-        #if DEBUG:print(d[-1])
 
         ''' add to db'''
         db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,SP,RC,UNIXTIME) \
@@ -194,7 +213,7 @@ while True:
         #if DEBUG:
                 # if bserial : os.system("screen -S ble -X stuff 'sudo echo \"%s\" > /dev/rfcomm1 ^M' " %'_'.join([str(i) for i in d[-1]]))
 
-        if DEBUG: print('saveddb')
+        log.info('DB saved')
 
         power.ledon()
 
@@ -206,7 +225,7 @@ while True:
 
     if (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
         ''' hometime - SLEEP '''
-        if DEBUG: print('NightSleep, hour={}'.format(hour))
+        log.debug('NightSleep, hour={}'.format(hour))
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
         power.ledon()
         SAMPLE_LENGTH = -1 # Dont run !  SAMPLE_LENGTH_slow
@@ -214,7 +233,7 @@ while True:
         TYPE = 4
 
     elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]): # >7 <9 & >15 <18 utc (9-15)
-        if DEBUG: print('@ School, hour={}'.format(hour))
+        log.debug('@ School, hour={}'.format(hour))
         ''' at school - try upload'''
         ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
 
@@ -222,36 +241,45 @@ while True:
 
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
 
+        print('savecondition:', DATE,LAST_SAVE)
         if DATE != LAST_SAVE:
             if upload.online():
+                print('online')
                 #check if connected to wifi
                 loading = power.blink_nonblock_inf_update()
                 ## SYNC
                 upload_success = upload.sync(SERIAL,db.conn)
-
+                #print(upload_success,'us we disabled this')
                 if upload_success:
                     cursor=db.conn.cursor()
                     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
                     table_list=[]
                     for table_item in cursor.fetchall():
                         table_list.append(table_item[0])
-
+                    #print(table_list)
                     for table_name in table_list:
-                        print ('Dropping table : '+table_name)
+                        log.debug('Dropping table : '+table_name)
                         db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
 
-                    print('rebuilding db')
+                    log.info('rebuilding db')
                     builddb.builddb(db.conn)
 
-                    while loading.isAlive():
-                        power.stopblink(loading)
-                        loading.join(.1)
+                    log.debug('upload complete %s %s'%(DATE, hour))
 
-                    print('upload complete', DATE, hour)
+                    with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+                        lines=f.readlines()
+                    with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+                        for line in lines:
+                            f.write(sub(r'LAST_SAVE = '+LAST_SAVE, 'LAST_SAVE = '+DATE, line))
                     LAST_SAVE = DATE
 
+                print('stopping blinking')                    
+                while loading.isAlive():
+                    power.stopblink(loading)
+                    loading.join(.1)
+
                 ## update time!
-                os.system('sudo timedatectl &')
+                log.info(os.popen('sudo timedatectl &').read())
 
                 ## run git pull
                 branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
@@ -264,13 +292,13 @@ while True:
         # sleep for 18 minutes - check break statement every minute
 
         # check if we are trying to stop the device every minute
-        for i in range(5):
-            time.sleep(5*60) #5 sets of 5 min
+        for i in range(14):
+            time.sleep(60) #5 sets of 5 min
             if STOP:break
 
         TYPE = 4
     else:
-        if DEBUG: print('en route - FASTSAMPLE, hour={}'.format(hour))
+        log.debug('en route - FASTSAMPLE, hour={}'.format(hour))
 
         print (gpsdaemon.is_alive())
 
@@ -285,9 +313,11 @@ while True:
 ########################################################
 
 
-print('exiting- STOP:',STOP)
+log.info('exiting - STOP: %s'%STOP)
 db.conn.commit()
 db.conn.close()
 power.ledon()
 if not (os.system("git status --branch --porcelain | grep -q behind")):
+    now = now = datetime.utcnow()now.strftime("%F %X")
+    log.critical('Updates available. We need to reboot. Shutting down at %s'%now)
     os.system("sudo reboot")

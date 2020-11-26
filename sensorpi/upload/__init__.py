@@ -3,6 +3,9 @@ scripts to run if connected online
 '''
 import os
 from datetime import date,datetime
+from ..log_manager import getlog
+log = getlog(__file__)
+print = log.print
 
 def online():
 
