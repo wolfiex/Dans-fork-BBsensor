@@ -51,6 +51,7 @@ DHT_module = False
 if DHT_module: from . import DHT
 log = getlog(__name__)
 
+
 SAMPLE_LENGTH_slow = 60*5
 SAMPLE_LENGTH_fast = 60*1 # in seconds
 SAMPLE_LENGTH = SAMPLE_LENGTH_fast
@@ -94,8 +95,12 @@ def interrupt(channel):
 
 GPIO.add_event_detect(21, GPIO.RISING, callback=interrupt, bouncetime=300)
 
+for i in range(3): log.debug('')
 log.info('########################################################')
 log.info('starting',datetime.now())
+log.info('########################################################')
+for i in range(3): log.debug('')
+    
 R1.clean(alpha)
 
 while loading.isAlive():
@@ -256,7 +261,7 @@ while True:
                     log.info('rebuilding db')
                     builddb.builddb(db.conn)
 
-                    log.debug('upload complete', DATE, hour)
+                    log.debug('upload complete %s %s'%(DATE, hour))
 
                     with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
                         lines=f.readlines()
@@ -288,7 +293,7 @@ while True:
         # check if we are trying to stop the device every minute
         for i in range(5):
             time.sleep(1*60) #5 sets of 5 min
-            log.debug('stop = ',STOP)
+            log.debug('stop = %s'%STOP)
             if STOP:break
 
         TYPE = 4
@@ -308,7 +313,7 @@ while True:
 ########################################################
 
 
-log.info('exiting - STOP:',STOP)
+log.info('exiting - STOP: %s'%STOP)
 db.conn.commit()
 db.conn.close()
 power.ledon()
