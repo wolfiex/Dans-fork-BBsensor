@@ -72,6 +72,7 @@ def onexit():
     except:None
     from . import power
     power.ledon()
+    sys.exit('Ending Python')
 
 import atexit
 atexit.register(onexit)
