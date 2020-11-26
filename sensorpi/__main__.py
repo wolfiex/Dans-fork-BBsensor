@@ -318,6 +318,6 @@ db.conn.commit()
 db.conn.close()
 power.ledon()
 if not (os.system("git status --branch --porcelain | grep -q behind")):
-    now = now = datetime.utcnow()now.strftime("%F %X")
+    now = now = datetime.utcnow().strftime("%F %X")
     log.critical('Updates available. We need to reboot. Shutting down at %s'%now)
     os.system("sudo reboot")
