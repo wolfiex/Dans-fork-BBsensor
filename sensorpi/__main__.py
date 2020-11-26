@@ -241,13 +241,12 @@ while True:
 
         print(DATE,LAST_SAVE)
         if DATE != LAST_SAVE:
-            print('dt')
             if upload.online():
                 print('online')
                 #check if connected to wifi
                 loading = power.blink_nonblock_inf_update()
                 ## SYNC
-                upload_success = upload.sync(SERIAL,db.conn)
+                upload_success = False#upload.sync(SERIAL,db.conn)
                 print(upload_success,'us we disabled this')
                 if upload_success:
                     cursor=db.conn.cursor()
