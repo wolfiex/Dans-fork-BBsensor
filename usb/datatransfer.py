@@ -57,10 +57,13 @@ for u in usbs:
     for db in DBs:
         dname = db.rsplit('/',1)[-1]
         print('Transferring',dname)
+        start = time.time()
         mod = os.popen('date -r '+db+' "+%Y_%m_%d_%H%M"').read()
         cmd = 'cp -n %s /media/transferdata/%s_%s_%s'%(db,SERIAL[:16],mod,dname)
         os.system(cmd)# -n for no clobber
         print(cmd)
+        print('%d bytes - %.0e seconds'%(os.path.getsize(db),(time.time()-start)/60))
+ 
         
 
     os.system('sudo umount /media')
