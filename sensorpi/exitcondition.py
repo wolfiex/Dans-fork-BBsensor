@@ -55,7 +55,7 @@ def onexit():
     else:
         log.critical("natural death")
 
-    print('Attempting to exit in a controlled Manner \n',datetime.datetime.now(),'\n')
+    log.print('Attempting to exit in a controlled Manner \n',datetime.datetime.now(),'\n')
 
 
     from . import R1
