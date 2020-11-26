@@ -76,7 +76,7 @@ log.info('########################################################')
 log.info('starting {}'.format(datetime.now()))
 log.info('########################################################')
 
-    
+
 R1.clean(alpha)
 while loading.isAlive():
     if DEBUG: print('stopping loading blink ...')
@@ -237,8 +237,8 @@ while True:
                             f.write(sub(r'LAST_SAVE = '+LAST_SAVE, 'LAST_SAVE = '+DATE, line))
 
                     LAST_SAVE = DATE
-                
-                print('stopping blinking')                    
+
+                print('stopping blinking')
                 while loading.isAlive():
                     power.stopblink(loading)
                     loading.join(.1)
@@ -265,6 +265,6 @@ db.conn.commit()
 db.conn.close()
 power.ledon()
 if not (os.system("git status --branch --porcelain | grep -q behind")):
-    now = now = datetime.utcnow()now.strftime("%F %X")
+    now = datetime.utcnow().strftime("%F %X")
     log.critical('Updates available. We need to reboot. Shutting down at %s'%now)
     os.system("sudo reboot")
