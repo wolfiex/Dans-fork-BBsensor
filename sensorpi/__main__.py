@@ -16,9 +16,9 @@ __author__ = "Dan Ellis, Christopher Symonds"
 __copyright__ = "Copyright 2020, University of Leeds"
 __credits__ = ["Dan Ellis", "Christopher Symonds", "Jim McQuaid", "Kirsty Pringle"]
 __license__ = "MIT"
-__version__ = "0.3.6"
-__maintainer__ = "C. Symonds"
-__email__ = "C.C.Symonds@leeds.ac.uk"
+__version__ = "0.4.0"
+__maintainer__ = "D. Ellis"
+__email__ = "D.Ellis@leeds.ac.uk"
 __status__ = "Prototype"
 
 # Built-in/Generic Imports
@@ -55,20 +55,18 @@ LAST_SAVE = None
 DHT_module = False
 if DHT_module: from . import DHT
 
-
-
 SAMPLE_LENGTH_slow = 60*5
 SAMPLE_LENGTH_fast = 60*1 # in seconds
 SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 # assert SAMPLE_LENGTH > 10
 
 ### hours (not inclusive)
-NIGHT = [18,6] # stop 7-7
-SCHOOL = [9,14] # stop 10 -2
+NIGHT = [18,7] # stop 7-7
+SCHOOL = [9,15] # stop 10 -2
 
-loading = power.blink_nonblock_inf()
 gpsdaemon = gps.init(wait=False)
 alpha = R1.alpha
+loading = power.blink_nonblock_inf()
 
 ########################################################
 ## Bluetooth setup
@@ -104,7 +102,7 @@ log.info('########################################################')
 log.info('starting {}'.format(datetime.now()))
 log.info('########################################################')
 
-    
+
 R1.clean(alpha)
 
 while loading.isAlive():
@@ -158,7 +156,7 @@ def runcycle():
     # for i in range(SAMPLE_LENGTH-1):
     start = time.time()
     while time.time()-start < SAMPLE_LENGTH:
-        # now = datetime.utcnow()now.strftime("%H%M%S")
+        # now = datetime.utcnow().strftime("%H%M%S")
         #print(time.time()-start , SAMPLE_LENGTH)
 
         pm = R1.poll(alpha)
@@ -173,8 +171,19 @@ def runcycle():
             loc     = gps.last.copy()
             unixtime = int(datetime.utcnow().strftime("%s")) # to the second
 
-
-            results.append( [SERIAL,TYPE,loc['gpstime'][:6],scramble(('%(lat)s_%(lon)s_%(alt)s'%loc).encode('utf-8')),float(pm['PM1']),float(pm['PM2.5']),float(pm['PM10']),float(temp),float(rh),float(pm['Sampling Period']),int(pm['Reject count glitch']),unixtime,] )
+            results.append( [
+                            SERIAL,
+                            TYPE,
+                            loc['gpstime'][:6],
+                            scramble(('%(lat)s_%(lon)s_%(alt)s'%loc).encode('utf-8')),
+                            float(pm['PM1']),
+                            float(pm['PM2.5']),
+                            float(pm['PM10']),
+                            float(temp),
+                            float(rh),
+                            float(pm['Sampling Period']),
+                            int(pm['Reject count glitch']),
+                            unixtime,] )
 
         if STOP:break
         time.sleep(.1) # keep as 1
@@ -213,7 +222,7 @@ while True:
         #if DEBUG:
                 # if bserial : os.system("screen -S ble -X stuff 'sudo echo \"%s\" > /dev/rfcomm1 ^M' " %'_'.join([str(i) for i in d[-1]]))
 
-        log.info('DB saved')
+        log.info('DB saved at {}'.format(datetime.utcnow().strftime("%X")))
 
         power.ledon()
 
@@ -241,10 +250,9 @@ while True:
 
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
 
-        print('savecondition:', DATE,LAST_SAVE)
+        log.debug('savecondition:', DATE,LAST_SAVE)
         if DATE != LAST_SAVE:
             if upload.online():
-                print('online')
                 #check if connected to wifi
                 loading = power.blink_nonblock_inf_update()
                 ## SYNC
@@ -256,15 +264,14 @@ while True:
                     table_list=[]
                     for table_item in cursor.fetchall():
                         table_list.append(table_item[0])
-                    #print(table_list)
                     for table_name in table_list:
                         log.debug('Dropping table : '+table_name)
                         db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
 
-                    log.info('rebuilding db')
+                    log.debug('rebuilding db')
                     builddb.builddb(db.conn)
 
-                    log.debug('upload complete %s %s'%(DATE, hour))
+                    log.info('upload complete %s %s'%(DATE, hour))
 
                     with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
                         lines=f.readlines()
@@ -272,8 +279,8 @@ while True:
                         for line in lines:
                             f.write(sub(r'LAST_SAVE = '+LAST_SAVE, 'LAST_SAVE = '+DATE, line))
                     LAST_SAVE = DATE
+                    log.debug('LAST_SAVE = ', LAST_SAVE)
 
-                print('stopping blinking')                    
                 while loading.isAlive():
                     power.stopblink(loading)
                     loading.join(.1)
@@ -282,6 +289,7 @@ while True:
                 log.info(os.popen('sudo timedatectl &').read())
 
                 ## run git pull
+                log.debug('Checking git repo')
                 branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
                 os.system("git fetch -q origin {}".format(branchname))
                 if not (os.system("git status --branch --porcelain | grep -q behind")):
@@ -300,7 +308,7 @@ while True:
     else:
         log.debug('en route - FASTSAMPLE, hour={}'.format(hour))
 
-        print (gpsdaemon.is_alive())
+        log.debug('GPS alive = {}'.format(gpsdaemon.is_alive()))
 
         if gpsdaemon.is_alive() == False:
             gpsdaemon = gps.init(wait=False)
