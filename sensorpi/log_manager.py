@@ -44,6 +44,11 @@ def getlog(name):
   if name=='': name = 'unknown'
   
   log = logging.getLogger(name) ## if running interactively with ipython, replace this with a descriptive string
+  
+  # remove existing handlers
+  while log.hasHandlers():
+    log.removeHandler(log.handlers[0])
+    
   log.setLevel(logging.DEBUG)
 
   
