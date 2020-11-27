@@ -250,7 +250,7 @@ while True:
 
         if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
 
-        log.debug('savecondition:', DATE,LAST_SAVE)
+        log.debug('savecondition: Date = {}, Last Save = {}'.format(DATE,LAST_SAVE))
         if DATE != LAST_SAVE:
             if upload.online():
                 #check if connected to wifi
