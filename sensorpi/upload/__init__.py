@@ -172,8 +172,9 @@ def sync(SERIAL,conn):
 
     for i in range (10):
         try:
-            with pysftp.Connection(host="BBServer1-1.local", username="serverpi", private_key=private_key, private_key_pass=key_pass, cnopts=cnopts) as srv:
+            with pysftp.Connection(host="10.3.141.1", username="serverpi", private_key=private_key, private_key_pass=key_pass, cnopts=cnopts) as srv:
                 print ("Connection Open")
+                srv.timeout(10.0)
                 if srv.exists(destination):
                     srv.chdir(destination)
                     print("Uploading db file to serverpi")
@@ -186,6 +187,8 @@ def sync(SERIAL,conn):
                     print ("File transfered - "+source)
                 else:
                     print("Destination does not exist")
+                    success = False
+                    continue
                 success = True
                 break
         except Exception as e:

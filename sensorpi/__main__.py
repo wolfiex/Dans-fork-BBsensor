@@ -256,8 +256,11 @@ while True:
                 #check if connected to wifi
                 loading = power.blink_nonblock_inf_update()
                 ## SYNC
-                upload_success = upload.sync(SERIAL,db.conn)
-                #print(upload_success,'us we disabled this')
+                try:
+                    upload_success = upload.sync(SERIAL,db.conn)
+                except Exception as e:
+                    log.error("Error in attempting staging upload to serverpi - {}".format(e))
+                    upload_success = False
                 if upload_success:
                     cursor=db.conn.cursor()
                     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
