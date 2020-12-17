@@ -61,6 +61,9 @@ for u in usbs:
         mod = os.popen('date -r '+db+' "+%Y_%m_%d_%H%M"').read()
         cmd = 'cp -n %s /media/transferdata/%s_%s_%s'%(db,SERIAL[:16],mod,dname)
         os.system(cmd)# -n for no clobber
+        #try csv
+        cmd = 'cp -n %s /media/transferdata/%s_%s_%s'%('/root/simplesensor.csv',SERIAL[:16],mod,dname)
+        os.system(cmd)# -n for no clobber
         print(cmd)
         print('%d bytes - %.0e seconds'%(os.path.getsize(db),(time.time()-start)/60))
  
