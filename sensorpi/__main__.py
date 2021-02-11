@@ -22,74 +22,97 @@ __email__ = "D.Ellis@leeds.ac.uk"
 __status__ = "Prototype"
 
 # Built-in/Generic Imports
-import time,sys,os
+import time,sys,os,pickle
 from datetime import date,datetime
 from re import sub
 
-# Check Modules
-from .tests import pyvers
-from .log_manager import getlog
-log = getlog(__name__)
-print = log.print ## replace print function with a wrapper
-log.info('########################################################'.replace('#','~'))
 
-# Exec modules
-from .exitcondition import GPIO
-from . import power
-from .crypt import scramble
-from . import db
-from .db import builddb, __RDIR__
-from . import upload
-from . import gps
-from . import R1
+
 ########################################################
 ##  Running Parameters
 ########################################################
 
 ## runtime constants
-SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
-DATE   = date.today().strftime("%d/%m/%Y")
-STOP   = False
-TYPE   = 2 # { 1 = static, 2 = dynamic, 3 = isolated_static, 4 = home/school}
-LAST_SAVE = None
-DHT_module = False
-if DHT_module: from . import DHT
 
-SAMPLE_LENGTH_slow = 60*5
-SAMPLE_LENGTH_fast = 60*1 # in seconds
-SAMPLE_LENGTH = SAMPLE_LENGTH_fast
-# assert SAMPLE_LENGTH > 10
+CSV = True
+
+DHT_module = False
+
 
 ### hours (not inclusive)
 NIGHT = [18,7] # stop 7-7
 SCHOOL = [9,15] # stop 10 -2
 
+#how often we save to file
+SAMPLE_LENGTH_slow = 60*5
+SAMPLE_LENGTH_fast = 60*1 # in seconds
+SAMPLE_LENGTH = SAMPLE_LENGTH_fast
+# assert SAMPLE_LENGTH > 10
+
+
+DATE   = date.today().strftime("%d/%m/%Y")
+STOP   = False
+TYPE   = 2 # { 1 = static, 2 = dynamic, 3 = isolated_static, 4 = home/school}
+LAST_SAVE = None
+SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
+
+########################################################
+##  Imports
+########################################################
+
+## conditional imports 
+if DHT_module: from . import DHT
+    
+
+
+
+# Check Modules
+from .tests import pyvers
+from .SensorMod.log_manager import getlog
+log = getlog(__name__)
+print = log.print ## replace print function with a wrapper
+log.info('########################################################'.replace('#','~'))
+
+try:
+    from .SensorMod import oled
+    oled.standby(message = "   -- loading... --   ")
+    OLED_module=True
+except ImportError:
+    OLED_module=False
+log.info('USING OLED = %s'%OLED_module)
+
+# Exec modules
+from .SensorMod.exitcondition import GPIO
+from .SensorMod import power
+from .crypt import scramble
+if not CSV:
+    from . import db
+    from .db import builddb, __RDIR__
+else: 
+    log.critical('WRITING CSV ONLY')
+    from .db import __RDIR__
+    CSV = __RDIR__+'/simplesensor.csv'
+    SAMPLE_LENGTH = SAMPLE_LENGTH_slow
+    from pandas import DataFrame
+    columns='SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,BINS,SP,RC,UNIXTIME'.split(',')
+    # inefficient I know, but it will only be used for testing
+from .SensorMod import upload
+from .SensorMod import gps
+from .SensorMod import R1
+
+
+
+########################################################
+##  Setup
+########################################################
 gpsdaemon = gps.init(wait=False)
+if not gpsdaemon: 
+    log.warning('NO GPS FOUND!')
+    if OLED_module : oled.standby(message = "   -- NO GLONASS --   ")
 alpha = R1.alpha
 loading = power.blink_nonblock_inf()
 
-########################################################
-## Bluetooth setup
-########################################################
-# '''
-# Start bluetooth DEBUG
-# '''
-# if DEBUG:
-#     print('debug:', DEBUG)
-#     try:
-#         # Load watch command for bluetooth
-#         # do this after 10 second delay from code to allow pi to finish booting.
-#         bserial = True
-#         os.system("screen -S ble -X stuff 'sudo rfcomm release rfcomm1 1 ^M' ")
-#         os.system("screen -S ble -X stuff 'sudo rfcomm watch rfcomm1 1 & ^M' ")
-#         # open('/dev/rfcomm1','w',1)
-#         # bserial.write('starting')
-#         # bserial.close()
-#         print('debug using bluetooth serial: on')
-#     except:print('no bluetooth serial')
-#
-########################################################
-########################################################
+
 
 def interrupt(channel):
     log.warning("Pull Down on GPIO 21 detected: exiting program")
@@ -168,8 +191,12 @@ def runcycle():
                 temp = pm['Temperature']
                 rh   = pm[  'Humidity' ]
 
-            loc     = gps.last.copy()
+            if gpsdaemon : loc = gps.last.copy()
+            else: loc = dict(zip('gpstime lat lon alt'.split(),['000000','','','']))
+                
             unixtime = int(datetime.utcnow().strftime("%s")) # to the second
+            
+            bins = pickle.dumps([float(pm['Bin %s'%i]) for i in range(16)])
 
             results.append( [
                             SERIAL,
@@ -181,12 +208,17 @@ def runcycle():
                             float(pm['PM10']),
                             float(temp),
                             float(rh),
+                            bins,
                             float(pm['Sampling Period']),
                             int(pm['Reject count glitch']),
                             unixtime,] )
+                            
+            if OLED_module: 
+                now = str(datetime.utcnow()).split('.')[0]
+                oled.updatedata(now,results[-1])
 
         if STOP:break
-        time.sleep(.1) # keep as 1
+        time.sleep(1) # keep as 1
 
     alpha.off()
     time.sleep(1)# Let the rpi turn off the fan
@@ -215,14 +247,21 @@ while True:
         d = runcycle()
 
         ''' add to db'''
-        db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,SP,RC,UNIXTIME) \
-              VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", d );
-        db.conn.commit() # dont forget to commit!
+        if not CSV:
+            if OLED_module: oled.standby(message = "   --  write db  --   ")
+            db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,BINS,SP,RC,UNIXTIME) \
+                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", d );
+            db.conn.commit() # dont forget to commit!
+            log.info('DB saved at {}'.format(datetime.utcnow().strftime("%X")))
+        else:
+            if OLED_module: oled.standby(message = "   --  write csv  --   ")
+            DataFrame(d,columns=columns).to_csv(CSV,mode='a')
+            log.info('CSV saved at {}'.format(datetime.utcnow().strftime("%X")))
 
         #if DEBUG:
                 # if bserial : os.system("screen -S ble -X stuff 'sudo echo \"%s\" > /dev/rfcomm1 ^M' " %'_'.join([str(i) for i in d[-1]]))
 
-        log.info('DB saved at {}'.format(datetime.utcnow().strftime("%X")))
+        
 
         power.ledon()
 
@@ -231,13 +270,16 @@ while True:
 
     hour = datetime.now().hour#gps.last.copy()['gpstime'][:2]
 
+    if CSV:
+        log.debug('CSV - skipping conditionals')
 
-    if (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
+    elif (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
         ''' hometime - SLEEP '''
         log.debug('NightSleep, hour={}'.format(hour))
-        if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
+        if gpsdaemon and gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
         power.ledon()
         SAMPLE_LENGTH = -1 # Dont run !  SAMPLE_LENGTH_slow
+        if OLED_module: oled.standby()
         time.sleep(30*60) # sleep 0.5h
         TYPE = 4
 
@@ -248,7 +290,7 @@ while True:
 
         DATE = date.today().strftime("%d/%m/%Y")
 
-        if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
+        if gpsdaemon and gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
 
         log.debug('savecondition: Date = {}, Last Save = {}'.format(DATE,LAST_SAVE))
         if DATE != LAST_SAVE:
@@ -302,6 +344,8 @@ while True:
 
         # sleep for 18 minutes - check break statement every minute
 
+
+        if OLED_module: oled.standby()
         # check if we are trying to stop the device every minute
         for i in range(14):
             time.sleep(60) #5 sets of 5 min
@@ -311,9 +355,9 @@ while True:
     else:
         log.debug('en route - FASTSAMPLE, hour={}'.format(hour))
 
-        log.debug('GPS alive = {}'.format(gpsdaemon.is_alive()))
+        if gpsdaemon: log.debug('GPS alive = {}'.format(gpsdaemon.is_alive()))
 
-        if gpsdaemon.is_alive() == False:
+        if gpsdaemon and gpsdaemon.is_alive() == False:
             gpsdaemon = gps.init(wait=False)
 
         SAMPLE_LENGTH = SAMPLE_LENGTH_fast
@@ -325,10 +369,23 @@ while True:
 
 
 log.info('exiting - STOP: %s'%STOP)
-db.conn.commit()
-db.conn.close()
+if not CSV:
+    db.conn.commit()
+    db.conn.close()
 power.ledon()
+if OLED_module: oled.shutdown()
 if not (os.system("git status --branch --porcelain | grep -q behind")):
     now = datetime.utcnow().strftime("%F %X")
     log.critical('Updates available. We need to reboot. Shutting down at %s'%now)
     os.system("sudo reboot")
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

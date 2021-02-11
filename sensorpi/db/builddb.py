@@ -1,5 +1,5 @@
 import sqlite3
-from ..log_manager import getlog
+from ..SensorMod.log_manager import getlog
 log = getlog(__file__)
 
 def builddb(conn):
@@ -19,6 +19,7 @@ def builddb(conn):
                      PM10         REAL        NOT NULL,
                      T            REAL        NOT NULL,
                      RH           REAL        NOT NULL,
+                     BINS         BLOB        NOT NULL,
                      SP           REAL        NOT NULL,
                      RC           INT         NOT NULL,
                      UNIXTIME     INT         NOT NULL
