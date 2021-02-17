@@ -294,7 +294,7 @@ while True:
 
         log.debug('savecondition: Date = {}, Last Save = {}'.format(DATE,LAST_SAVE))
         if DATE != LAST_SAVE:
-            if upload.online():
+            if upload.connected():
                 #check if connected to wifi
                 loading = power.blink_nonblock_inf_update()
                 ## SYNC
@@ -329,6 +329,8 @@ while True:
                 while loading.isAlive():
                     power.stopblink(loading)
                     loading.join(.1)
+
+            if upload.online():
 
                 ## update time!
                 log.info(os.popen('sudo timedatectl &').read())
@@ -378,14 +380,3 @@ if not (os.system("git status --branch --porcelain | grep -q behind")):
     now = datetime.utcnow().strftime("%F %X")
     log.critical('Updates available. We need to reboot. Shutting down at %s'%now)
     os.system("sudo reboot")
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
