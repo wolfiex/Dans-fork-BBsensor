@@ -37,9 +37,23 @@ pip3 install pillow
 pip3 install adafruit-extended-bus
 
 #/dev/ttyS0 is owned by the user root and the group dialout, so to be able to acesss the serial device, I would add myself to the dialout group:
-
 sudo usermod -a -G tty $USER ;
 sudo chmod 666 /dev/ttyS0 ;
+
+## RTC INSTALL
+cd;
+git clone https://github.com/bablokb/pi-wake-on-rtc.git;
+cd pi-wake-on-rtc;
+sudo tools/install;
+
+date
+sudo rtcctl show date
+
+## sync rtc
+sudo rtcctl init
+
+date
+sudo rtcctl show date
 
 sudo apt autoremove -y;
 echo 'finished'
