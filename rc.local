@@ -79,7 +79,18 @@ echo 'attempting to set date from rtc';
   ## set date from RTC - this errors if no rtc is available
 sudo date -s "$(sudo rtcctl show date | cut -c9- )";
 echo 'end rtc code';
+
+# set an alarm 7 am next working day
+# sudo rtcctl set alarm1 $(date -d "$last_day +$( if [ `date -d $last_day +%w` == 5 ]; then echo 3; elif [ `date -d $last_day +%w` == 6 ]; then echo 2; else echo 1; fi ) days" +"%d.%m.%Y 07:00") 
+# dont forget to turn it on 
+# sudo rtcctl on alarm1
 }
+
+
+
+
+
+## old rtc code - ignore
 # if sudo i2cdetect -y 1 | grep 68 ; then
 #     echo 'RTC found';
 #     dtoverlay i2c-rtc pcf8523=true wakeup-source=true;
