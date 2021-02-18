@@ -29,6 +29,21 @@ root@bbsensor00:~/pi-wake-on-rtc# sudo rtcctl show date
 date:   2000-01-01 00:09:52
 ```
 
+# Sync RTC with onboard clock
+
+## sync rtc
+
+```
+sudo rtcctl init
+```
+## Check the time as above
+```
+root@bbsensor00:~/pi-wake-on-rtc# sudo rtcctl show date
+date:   2021-02-18 19:30:20
+root@bbsensor00:~/pi-wake-on-rtc# date
+Thu 18 Feb 19:30:24 GMT 2021
+```
+
 
 
 
