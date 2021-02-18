@@ -34,7 +34,8 @@ from re import sub
 
 ## runtime constants
 
-CSV = True
+CSV = False
+CONTINUOUS = True
 
 DHT_module = False
 
@@ -272,6 +273,8 @@ while True:
 
     if CSV:
         log.debug('CSV - skipping conditionals')
+    elif CONTINUOUS:
+        log.debug('continuous running')
 
     elif (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
         ''' hometime - SLEEP '''
