@@ -1,3 +1,7 @@
+------
+Warning, unplugging the RTC corrupts it. Solution, reboot the PI with internet to resync. 
+------
+
 # Login
 1.  ssh into the pi
 2.  Log in as root `sudo -s`
