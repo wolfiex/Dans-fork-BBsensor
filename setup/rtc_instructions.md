@@ -47,6 +47,40 @@ Thu 18 Feb 19:30:24 GMT 2021
 
 
 
+## TEST time from RTC
+We start by breaking the system time configuration and setting the month and time to july 
+
+```
+sudo date -s "Jul 5 08:10"
+```
+
+## Time difference
+Now unless we ran the above command at 8 am in July there will be a clock difference
+```
+root@bbsensor00:~/pi-wake-on-rtc# sudo rtcctl show
+date:   2021-02-18 19:45:30
+sys:    2021-07-05 08:14:26.029449
+alarm1: 2021-07-18 20:30:18
+        (enabled: False)
+        (fired:   False)
+alarm2: 2021-07-18 20:30:00
+        (enabled: False)
+        (fired:   False)
+```
+
+## truncate rtc time
+```
+sudo rtcctl show date | cut -c9- 
+```
+
+## Use this to set the rpi date
+```
+## set date from RTC
+sudo date -s "$(sudo rtcctl show date | cut -c9- )"
+```
+
+
+
 
 
 
