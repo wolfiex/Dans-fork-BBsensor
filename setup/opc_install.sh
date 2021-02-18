@@ -46,8 +46,14 @@ git clone https://github.com/bablokb/pi-wake-on-rtc.git;
 cd pi-wake-on-rtc;
 sudo tools/install;
 
+date
+sudo rtcctl show date
 
+## sync rtc
+sudo rtcctl init
 
+date
+sudo rtcctl show date
 
 sudo apt autoremove -y;
 echo 'finished'
