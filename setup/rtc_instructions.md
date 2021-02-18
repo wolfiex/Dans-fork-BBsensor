@@ -1,6 +1,6 @@
 # Login
-1. ssh into the pi
-2. go to root `sudo -s`
+1.  ssh into the pi
+2.  Log in as root `sudo -s`
 
 # Installation 
 
@@ -18,7 +18,10 @@ sudo tools/install;
 # Check the time difference
 ## example code
 ```
-date;
+# pi date
+date;  
+
+# rtc date
 sudo rtcctl show date;
 ```
 ## Example output
