@@ -44,6 +44,10 @@ root@bbsensor00:~/pi-wake-on-rtc# date
 Thu 18 Feb 19:30:24 GMT 2021
 ```
 
+***********
+stop here
+**********
+
 
 
 
@@ -80,13 +84,62 @@ sudo date -s "$(sudo rtcctl show date | cut -c9- )"
 ```
 
 
+# Setting alarm 
+The plan is to clear the alarm on boot. We then read the date, and set another one for the next working day 
+
+
+## Next working day 
+```
+## where last day is todays date
+last_day=`date +%Y%m%d`
+nwd=$(date -d "$last_day +$( if [ `date -d $last_day +%w` == 5 ]; then echo 3; elif [ `date -d $last_day +%w` == 6 ]; then echo 2; else echo 1; fi ) days" +"%d.%m.%Y")
+echo $last_day $nwd
+```
+
+## setting an alarm
+
+### Format
+The format required is 
+```
+Format: dd.mm.YYYY [HH:MM[:SS]] or mm/dd.YYYY [HH:MM[:SS]]
+```
+### Set code
+We use the above snippet to set an alarm for 7 am on the next working day
+```
+# set an alarm 7 am next working day
+sudo rtcctl set alarm1 $(date -d "$last_day +$( if [ `date -d $last_day +%w` == 5 ]; then echo 3; elif [ `date -d $last_day +%w` == 6 ]; then echo 2; else echo 1; fi ) days" +"%d.%m.%Y 07:00") 
+# dont forget to turn it on 
+sudo rtcctl on alarm1
+```
+
+### Check alarm
+```
+sudo rtcctl show alarm1
+```
+
+### Clear alarm
+``` 
+sudo rtcctl clear alarm1
+```
 
 
 
 
+# Current state of RPI Sensors. 
+Although the chips are able to produce alarms and wake calls, the units purchased do not have the relevant pin connected (labelled as NC - not connected). 
+
+## Plan 
+
+The plan is to have the RC code to run reset the alarm for the next working day. 
+
+The sensor will then run normally. If the sensor is initated within a normal schoolday, then it will automatically shut down after 7 pm. It will then be woken up in the morning at 7 am as set. 
 
 
+Should the sensor be turned on out of hours (development mode) it will not automatically shut down again, but remain on as usual. 
 
+
+### Situation
+The clock is currently only just run to adjust the system time. 
 
 
 
