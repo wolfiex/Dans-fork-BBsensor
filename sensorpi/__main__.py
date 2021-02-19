@@ -16,7 +16,7 @@ __author__ = "Dan Ellis, Christopher Symonds"
 __copyright__ = "Copyright 2020, University of Leeds"
 __credits__ = ["Dan Ellis", "Christopher Symonds", "Jim McQuaid", "Kirsty Pringle"]
 __license__ = "MIT"
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __maintainer__ = "D. Ellis"
 __email__ = "D.Ellis@leeds.ac.uk"
 __status__ = "Prototype"
@@ -61,9 +61,9 @@ SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 
 ##  Imports
 ########################################################
 
-## conditional imports 
+## conditional imports
 if DHT_module: from . import DHT
-    
+
 
 
 
@@ -87,11 +87,11 @@ from .SensorMod.exitcondition import GPIO
 from .SensorMod import power
 from .crypt import scramble
 if not CSV:
-    from . import db
-    from .db import builddb, __RDIR__
-else: 
+    from .SensorMod import db
+    from .SensorMod.db import builddb, __RDIR__
+else:
     log.critical('WRITING CSV ONLY')
-    from .db import __RDIR__
+    from .SensorMod.db import __RDIR__
     CSV = __RDIR__+'/simplesensor.csv'
     SAMPLE_LENGTH = SAMPLE_LENGTH_slow
     from pandas import DataFrame
@@ -107,7 +107,7 @@ from .SensorMod import R1
 ##  Setup
 ########################################################
 gpsdaemon = gps.init(wait=False)
-if not gpsdaemon: 
+if not gpsdaemon:
     log.warning('NO GPS FOUND!')
     if OLED_module : oled.standby(message = "   -- NO GLONASS --   ")
 alpha = R1.alpha
@@ -194,9 +194,9 @@ def runcycle():
 
             if gpsdaemon : loc = gps.last.copy()
             else: loc = dict(zip('gpstime lat lon alt'.split(),['000000','','','']))
-                
+
             unixtime = int(datetime.utcnow().strftime("%s")) # to the second
-            
+
             bins = pickle.dumps([float(pm['Bin %s'%i]) for i in range(16)])
 
             results.append( [
@@ -213,8 +213,8 @@ def runcycle():
                             float(pm['Sampling Period']),
                             int(pm['Reject count glitch']),
                             unixtime,] )
-                            
-            if OLED_module: 
+
+            if OLED_module:
                 now = str(datetime.utcnow()).split('.')[0]
                 oled.updatedata(now,results[-1])
 
@@ -262,7 +262,7 @@ while True:
         #if DEBUG:
                 # if bserial : os.system("screen -S ble -X stuff 'sudo echo \"%s\" > /dev/rfcomm1 ^M' " %'_'.join([str(i) for i in d[-1]]))
 
-        
+
 
         power.ledon()
 
@@ -297,7 +297,7 @@ while True:
 
         log.debug('savecondition: Date = {}, Last Save = {}'.format(DATE,LAST_SAVE))
         if DATE != LAST_SAVE:
-            if upload.online():
+            if upload.connected():
                 #check if connected to wifi
                 loading = power.blink_nonblock_inf_update()
                 ## SYNC
@@ -332,6 +332,8 @@ while True:
                 while loading.isAlive():
                     power.stopblink(loading)
                     loading.join(.1)
+
+            if upload.online():
 
                 ## update time!
                 log.info(os.popen('sudo timedatectl &').read())
@@ -381,14 +383,3 @@ if not (os.system("git status --branch --porcelain | grep -q behind")):
     now = datetime.utcnow().strftime("%F %X")
     log.critical('Updates available. We need to reboot. Shutting down at %s'%now)
     os.system("sudo reboot")
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
