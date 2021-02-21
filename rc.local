@@ -77,6 +77,8 @@ then
     ## get time from internet
     sudo systemctl stop ntp
     sudo ntpd -q -g ;
+    
+    
     sudo rtcctl show ;
     # set reat time clock time from system clock
     sudo rtcctl init
@@ -93,7 +95,6 @@ echo 'end rtc code';
 # dont forget to turn it on 
 # sudo rtcctl on alarm1
 
-fi;
 
 
 
