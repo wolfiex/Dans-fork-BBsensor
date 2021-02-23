@@ -92,7 +92,7 @@ if not CSV:
 else:
     log.critical('WRITING CSV ONLY')
     from .SensorMod.db import __RDIR__
-    CSV = __RDIR__+'/simplesensor.csv'
+    CSVfile = __RDIR__+'/simplesensor.csv'
     SAMPLE_LENGTH = SAMPLE_LENGTH_slow
     from pandas import DataFrame
     columns='SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,BINS,SP,RC,UNIXTIME'.split(',')
@@ -256,7 +256,7 @@ while True:
             log.info('DB saved at {}'.format(datetime.utcnow().strftime("%X")))
         else:
             if OLED_module: oled.standby(message = "   --  write csv  --   ")
-            DataFrame(d,columns=columns).to_csv(CSV,mode='a')
+            DataFrame(d,columns=columns).to_csv(CSVfile,mode='a')
             log.info('CSV saved at {}'.format(datetime.utcnow().strftime("%X")))
 
         #if DEBUG:
