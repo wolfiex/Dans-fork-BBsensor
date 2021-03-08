@@ -1,3 +1,4 @@
+
 #!/usr/bin/env/python3
 # -*- coding: utf-8 -*-
 
@@ -213,7 +214,7 @@ def runcycle():
                             float(pm['Sampling Period']),
                             int(pm['Reject count glitch']),
                             unixtime,] )
-
+            log.critical(str([loc,unixtime]))
             if OLED_module:
                 now = str(datetime.utcnow()).split('.')[0]
                 oled.updatedata(now,results[-1])
