@@ -159,7 +159,7 @@ else:
 ## Main Loop
 ########################################################
 
-def runcycle():
+def runcycle(SAMPLE_LENGTH):
     '''
     # data = {'TIME':now.strftime("%H%M%S"),
     #         'SP':float(pm['Sampling Period']),
@@ -174,11 +174,11 @@ def runcycle():
 
     #(SERIAL,TYPE,d["TIME"],DATE,d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],)
     '''
-    global SAMPLE_LENGTH
+    
 
     results = []
     alpha.on()
-    # for i in range(SAMPLE_LENGTH-1):
+    
     start = time.time()
     while time.time()-start < SAMPLE_LENGTH:
         # now = datetime.utcnow().strftime("%H%M%S")
@@ -214,7 +214,7 @@ def runcycle():
                             float(pm['Sampling Period']),
                             int(pm['Reject count glitch']),
                             unixtime,] )
-            log.critical(str([loc,unixtime]))
+            #log.critical(str([loc,unixtime]))
             if OLED_module:
                 now = str(datetime.utcnow()).split('.')[0]
                 oled.updatedata(now,results[-1])
@@ -238,6 +238,9 @@ MAIN
 ########################################################
 ## Run Loop
 ########################################################
+
+SAMPLE_LENGTH=10 # initial sample set is only 10 seconds for db save debugging purposes. This then gets autoupdated within the relevant sections.
+
 while True:
     #update less frequenty in loop
     # DATE = date.today().strftime("%d/%m/%Y")
@@ -246,7 +249,7 @@ while True:
         power.ledoff()
 
         ## run cycle
-        d = runcycle()
+        d = runcycle(SAMPLE_LENGTH)
 
         ''' add to db'''
         if not CSV:
@@ -367,7 +370,8 @@ while True:
             gpsdaemon = gps.init(wait=False)
 
         SAMPLE_LENGTH = SAMPLE_LENGTH_fast
-        TYPE = 2
+        # was this needed?
+        #TYPE = 2
 
 
 ########################################################
