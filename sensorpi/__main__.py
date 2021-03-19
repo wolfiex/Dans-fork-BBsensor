@@ -41,6 +41,9 @@ CONTINUOUS = True
 DHT_module = False
 
 
+# how long do we wait before polling a histogram (s)
+SAMPLING_DELAY = 10
+
 ### hours (not inclusive)
 NIGHT = [18,7] # stop 7-7
 SCHOOL = [9,15] # stop 10 -2
@@ -174,16 +177,19 @@ def runcycle(SAMPLE_LENGTH):
 
     #(SERIAL,TYPE,d["TIME"],DATE,d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],)
     '''
-    
+    global SAMPLING_DELAY
 
     results = []
-    alpha.on()
+#     alpha.on()
     
     start = time.time()
     while time.time()-start < SAMPLE_LENGTH:
         # now = datetime.utcnow().strftime("%H%M%S")
         #print(time.time()-start , SAMPLE_LENGTH)
-
+        
+        
+        # sampling delay 
+        time.sleep(SAMPLING_DELAY) # keep as 1
         pm = R1.poll(alpha)
 
         if float(pm['PM1'])+float(pm['PM10'])  > 0:  #if there are results.
@@ -219,11 +225,14 @@ def runcycle(SAMPLE_LENGTH):
                 now = str(datetime.utcnow()).split('.')[0]
                 oled.updatedata(now,results[-1])
 
-        if STOP:break
-        time.sleep(1) # keep as 1
+        if STOP:
+            alpha.off()
+            time.sleep(1)
+            break
+        
 
-    alpha.off()
-    time.sleep(1)# Let the rpi turn off the fan
+#     alpha.off()
+#     time.sleep(1)# Let the rpi turn off the fan
     return results
 
 
@@ -244,6 +253,8 @@ SAMPLE_LENGTH=10 # initial sample set is only 10 seconds for db save debugging p
 while True:
     #update less frequenty in loop
     # DATE = date.today().strftime("%d/%m/%Y")
+    
+    alpha.on()
 
     if SAMPLE_LENGTH>0:
         power.ledoff()
@@ -270,7 +281,10 @@ while True:
 
         power.ledon()
 
-    if STOP:break
+    if STOP:
+        alpha.off()
+        time.sleep(1)
+        break
 
 
     hour = datetime.now().hour#gps.last.copy()['gpstime'][:2]
@@ -281,6 +295,8 @@ while True:
         log.debug('continuous running')
 
     elif (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
+        alpha.off()
+        time.sleep(1)
         ''' hometime - SLEEP '''
         log.debug('NightSleep, hour={}'.format(hour))
         if gpsdaemon and gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
@@ -291,6 +307,9 @@ while True:
         TYPE = 4
 
     elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]): # >7 <9 & >15 <18 utc (9-15)
+        alpha.off()
+        time.sleep(1)
+        
         log.debug('@ School, hour={}'.format(hour))
         ''' at school - try upload'''
         ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
@@ -362,6 +381,8 @@ while True:
 
         TYPE = 4
     else:
+        alpha.off()
+        time.sleep(1)
         log.debug('en route - FASTSAMPLE, hour={}'.format(hour))
 
         if gpsdaemon: log.debug('GPS alive = {}'.format(gpsdaemon.is_alive()))
@@ -370,8 +391,7 @@ while True:
             gpsdaemon = gps.init(wait=False)
 
         SAMPLE_LENGTH = SAMPLE_LENGTH_fast
-        # was this needed?
-        #TYPE = 2
+
 
 
 ########################################################
