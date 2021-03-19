@@ -23,7 +23,7 @@ __email__ = "D.Ellis@leeds.ac.uk"
 __status__ = "Prototype"
 
 # Built-in/Generic Imports
-import time,sys,os,pickle
+import time,sys,os,pickle, socket
 from datetime import date,datetime
 from re import sub
 
@@ -37,6 +37,12 @@ from re import sub
 
 CSV = False
 CONTINUOUS = True
+DHT_module = False
+
+hostname = socket.gethostname()
+
+if "bbstatic" in hostname:
+    CONTINUOUS = True
 
 DHT_module = False
 
@@ -54,11 +60,15 @@ SAMPLE_LENGTH_fast = 60*1 # in seconds
 SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 # assert SAMPLE_LENGTH > 10
 
+if "bbsensor" in hostname:
+    TYPE   = 2 # { 1 = static, 2 = dynamic, 3 = server, 4 = home/school}
+elif "bbstatic" in hostname:
+    TYPE   = 1 # { 1 = static, 2 = dynamic, 3 = server, 4 = home/school}
 
 DATE   = date.today().strftime("%d/%m/%Y")
 STOP   = False
-TYPE   = 2 # { 1 = static, 2 = dynamic, 3 = isolated_static, 4 = home/school}
 LAST_SAVE = None
+LAST_UPDATE = None
 SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
 
 ########################################################
@@ -67,9 +77,6 @@ SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 
 
 ## conditional imports
 if DHT_module: from . import DHT
-
-
-
 
 # Check Modules
 from .tests import pyvers
@@ -85,6 +92,10 @@ try:
 except ImportError:
     OLED_module=False
 log.info('USING OLED = %s'%OLED_module)
+
+# initial GPS co-ordinates
+from .SensorMod.gps.geolocate import lat,lon,alt
+loc = {'gpstime':now.strftime("%H%M%S"),'lat':lat,'lon':lon,'alt':alt}
 
 # Exec modules
 from .SensorMod.exitcondition import GPIO
@@ -111,7 +122,7 @@ from .SensorMod import R1
 ##  Setup
 ########################################################
 gpsdaemon = gps.init(wait=False)
-if not gpsdaemon:
+if not gpsdaemon and "bbsensor" in hostname:
     log.warning('NO GPS FOUND!')
     if OLED_module : oled.standby(message = "   -- NO GLONASS --   ")
 alpha = R1.alpha
@@ -140,7 +151,7 @@ while loading.isAlive():
 
 
 ########################################################
-## Check for pre-existing LAST_SAVE value
+## Check for pre-existing LAST_SAVE and LAST_UPDATE values
 ########################################################
 
 if os.path.exists(os.path.join(__RDIR__,'.uploads')):
@@ -149,14 +160,22 @@ if os.path.exists(os.path.join(__RDIR__,'.uploads')):
     for line in lines:
         if 'LAST_SAVE = ' in line:
             LAST_SAVE = line[12:].strip()
+        elif 'LAST_UPDATE = ' in line:
+            LAST_UPDATE = line[14:].strip()
     if LAST_SAVE == None:
         with open (os.path.join(__RDIR__,'.uploads'),'a') as f:
             f.write('LAST_SAVE = None\n')
         LAST_SAVE = 'None'
+    if LAST_UPDATE == None:
+        with open (os.path.join(__RDIR__,'.uploads'),'a') as f:
+            f.write('LAST_UPDATE = None\n')
+        LAST_UPDATE = 'None'
 else:
     with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
         f.write("LAST_SAVE = None\n")
+        f.write("LAST_UPDATE = None\n")
     LAST_SAVE = 'None'
+    LAST_UPDATE = 'None'
 
 ########################################################
 ## Main Loop
@@ -164,22 +183,28 @@ else:
 
 def runcycle(SAMPLE_LENGTH):
     '''
-    # data = {'TIME':now.strftime("%H%M%S"),
+    # data = {'SERIAL':SERIAL,
+    #         'TYPE':TYPE,
+    #         'TIME':now.strftime("%H%M%S"),
+    #         'LOC' :scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8')),
+    #         'PM1' :float(pm['PM1']),
+    #         'PM3' :float(pm['PM2.5']),
+    #         'PM10':float(pm['PM10']),
+    #         'TEMP':float(pm['Temperature']),
+    #         'RH'  :float(pm[  'Humidity' ]),
+    #         'BINS':pickle.dumps([float(pm['Bin %s'%i]) for i in range(16)]),
     #         'SP':float(pm['Sampling Period']),
     #         'RC':int(pm['Reject count glitch']),
-    #         'PM1':float(pm['PM1']),
-    #         'PM3':float(pm['PM2.5']),
-    #         'PM10':float(pm['PM10']),
-    #         'LOC':scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8'))
     #         'UNIXTIME': int(unixtime)
     #          }
     # Date,Type, Serial
 
-    #(SERIAL,TYPE,d["TIME"],DATE,d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],)
+    #(SERIAL,TYPE,d["TIME"],d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],)
     '''
     global SAMPLING_DELAY
 
     results = []
+
 #     alpha.on()
     
     start = time.time()
@@ -190,6 +215,7 @@ def runcycle(SAMPLE_LENGTH):
         
         # sampling delay 
         time.sleep(SAMPLING_DELAY) # keep as 1
+
         pm = R1.poll(alpha)
 
         if float(pm['PM1'])+float(pm['PM10'])  > 0:  #if there are results.
@@ -199,28 +225,31 @@ def runcycle(SAMPLE_LENGTH):
                 temp = pm['Temperature']
                 rh   = pm[  'Humidity' ]
 
-            if gpsdaemon : loc = gps.last.copy()
-            else: loc = dict(zip('gpstime lat lon alt'.split(),['000000','','','']))
 
-            unixtime = int(datetime.utcnow().strftime("%s")) # to the second
+            if gpsdaemon : loc = gps.last.copy()
+            else:
+                if "bbsensor" in hostname: loc = dict(zip('gpstime lat lon alt'.split(),['000000','','','']))
+                elif "bbstatic" in hostname: loc = {'gpstime':now.strftime("%H%M%S"),'lat':lat,'lon':lon,'alt':alt}
+
+            unixtime = int(now.strftime("%s")) # to the second
 
             bins = pickle.dumps([float(pm['Bin %s'%i]) for i in range(16)])
 
-            results.append( [
-                            SERIAL,
-                            TYPE,
-                            loc['gpstime'][:6],
-                            scramble(('%(lat)s_%(lon)s_%(alt)s'%loc).encode('utf-8')),
-                            float(pm['PM1']),
-                            float(pm['PM2.5']),
-                            float(pm['PM10']),
-                            float(temp),
-                            float(rh),
-                            bins,
-                            float(pm['Sampling Period']),
-                            int(pm['Reject count glitch']),
-                            unixtime,] )
-            #log.critical(str([loc,unixtime]))
+            results.append( [SERIAL,
+                             TYPE,
+                             loc['gpstime'][:6],
+                             scramble(('%(lat)s_%(lon)s_%(alt)s'%loc).encode('utf-8')),
+                             float(pm['PM1']),
+                             float(pm['PM2.5']),
+                             float(pm['PM10']),
+                             float(temp),
+                             float(rh),
+                             bins,
+                             float(pm['Sampling Period']),
+                             int(pm['Reject count glitch']),
+                             unixtime,] )
+
+
             if OLED_module:
                 now = str(datetime.utcnow()).split('.')[0]
                 oled.updatedata(now,results[-1])
@@ -237,8 +266,78 @@ def runcycle(SAMPLE_LENGTH):
 
 
 ########################################################
+#Uploads and Syncs
 ########################################################
 
+def upload_to_server(DATE):
+
+    global LAST_SAVE
+
+    if upload.connected():
+        if OLED_module: oled.standby(message = "   --  uploading  --   ")
+        #check if connected to wifi
+        loading = power.blink_nonblock_inf_update()
+        ## SYNC
+        try:
+            upload_success = upload.sync(SERIAL,db.conn)
+        except Exception as e:
+            log.error("Error in attempting staging upload to serverpi - {}".format(e))
+            upload_success = False
+        if upload_success:
+            cursor=db.conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            table_list=[]
+            for table_item in cursor.fetchall():
+                table_list.append(table_item[0])
+            for table_name in table_list:
+                log.debug('Dropping table : '+table_name)
+                db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
+
+            log.debug('rebuilding db')
+            builddb.builddb(db.conn)
+
+            log.info('upload complete {} {}'.format(DATE, hour))
+            with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+                lines=f.readlines()
+            with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+                for line in lines:
+                    f.write(sub(r'LAST_SAVE = '+LAST_SAVE, 'LAST_SAVE = '+DATE, line))
+
+            LAST_SAVE = DATE
+            log.debug('LAST_SAVE = ', LAST_SAVE)
+
+        while loading.isAlive():
+            power.stopblink(loading)
+            loading.join(.1)
+
+def update(DATE):
+
+    global LAST_UPDATE
+
+    if upload.online():
+
+        ## update time!
+        log.info(os.popen('sudo timedatectl &').read())
+
+        ## run git pull
+        log.debug('Checking git repo')
+        branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
+        os.system("git fetch -q origin {}".format(branchname))
+        if not (os.system("git status --branch --porcelain | grep -q behind")):
+            STOP = True
+
+        log.info('update complete {} {}'.format(DATE, hour))
+        with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+            lines=f.readlines()
+        with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+            for line in lines:
+                f.write(sub(r'LAST_UPDATE = '+LAST_UPDATE, 'LAST_UPDATE = '+DATE, line))
+
+        LAST_UPDATE = DATE
+        log.debug('LAST_UPDATE = ', LAST_UPDATE)
+
+########################################################
+########################################################
 
 '''
 MAIN
@@ -288,12 +387,14 @@ while True:
         break
 
 
-    hour = datetime.now().hour#gps.last.copy()['gpstime'][:2]
+    hour = datetime.now().hour
 
     if CSV:
         log.debug('CSV - skipping conditionals')
+
     elif CONTINUOUS:
         log.debug('continuous running')
+
 
     elif (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
         alpha.off()
@@ -386,14 +487,15 @@ while True:
         time.sleep(1)
         log.debug('en route - FASTSAMPLE, hour={}'.format(hour))
 
-        if gpsdaemon: log.debug('GPS alive = {}'.format(gpsdaemon.is_alive()))
 
-        if gpsdaemon and gpsdaemon.is_alive() == False:
-            gpsdaemon = gps.init(wait=False)
+            if gpsdaemon: log.debug('GPS alive = {}'.format(gpsdaemon.is_alive()))
 
-        SAMPLE_LENGTH = SAMPLE_LENGTH_fast
-        
-        TYPE = 2
+            if gpsdaemon and gpsdaemon.is_alive() == False:
+                gpsdaemon = gps.init(wait=False)
+
+            SAMPLE_LENGTH = SAMPLE_LENGTH_fast
+            TYPE = 2
+
 
 
 
