@@ -254,9 +254,10 @@ while True:
     #update less frequenty in loop
     # DATE = date.today().strftime("%d/%m/%Y")
     
-    alpha.on()
+    
 
     if SAMPLE_LENGTH>0:
+        alpha.on()
         power.ledoff()
 
         ## run cycle
