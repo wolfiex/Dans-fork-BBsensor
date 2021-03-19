@@ -392,6 +392,8 @@ while True:
             gpsdaemon = gps.init(wait=False)
 
         SAMPLE_LENGTH = SAMPLE_LENGTH_fast
+        
+        TYPE = 2
 
 
 
