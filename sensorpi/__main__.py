@@ -219,7 +219,7 @@ def runcycle(SAMPLE_LENGTH):
 
     results = []
 
-    alpha.on()
+    #alpha.on()
 
     start = time.time()
     while time.time()-start < SAMPLE_LENGTH:
