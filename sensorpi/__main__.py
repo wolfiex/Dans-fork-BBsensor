@@ -223,9 +223,7 @@ def runcycle(SAMPLE_LENGTH):
 
     start = time.time()
     while time.time()-start < SAMPLE_LENGTH:
-        # now = datetime.utcnow().strftime("%H%M%S")
-        #print(time.time()-start , SAMPLE_LENGTH)
-
+        now = datetime.utcnow()
 
         # sampling delay
         time.sleep(SAMPLING_DELAY) # keep as 1
