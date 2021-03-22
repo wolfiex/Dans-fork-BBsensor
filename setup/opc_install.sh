@@ -11,7 +11,6 @@ sudo apt-get install -y i2c-tools;
 sudo apt-get install -y python3-ipython;
 sudo apt-get install -y screen;
 
-
 git submodule update --init --recursive;
 pip3 install pyusbiss;
 pip3 install git+https://github.com/doceme/py-spidev.git;
@@ -28,7 +27,14 @@ pip3 install Adafruit_DHT;
 pip3 uninstall numpy -y;
 sudo apt-get install python3-numpy --yes ;
 pip3 install pandas;
+
+#For Staging Data - Sensors
 pip3 install pysftp;
+
+#For Uploading Data - ServerPi
+pip3 install boto3; # for uploading data to aws
+pip3 install adal
+pip3 install Office365-REST-Python-Client==2.2.2 # for uploading data to sharepoint
 
 #sudo pip3 install adafruit-circuitpython-ssd1306
 sudo pip3 install adafruit-circuitpython-lis3dh
@@ -37,6 +43,7 @@ pip3 install pillow
 pip3 install adafruit-extended-bus
 
 #/dev/ttyS0 is owned by the user root and the group dialout, so to be able to acesss the serial device, I would add myself to the dialout group:
+
 sudo usermod -a -G tty $USER ;
 sudo chmod 666 /dev/ttyS0 ;
 
@@ -57,7 +64,8 @@ sudo rtcctl show date
 
 sudo apt autoremove -y;
 echo 'finished'
-cd ../ && python3 -m sensorpi.db new;
+
+cd ../ && python3 -m sensorpi.SensorMod.db new;
 cd ../ && python3 -m sensorpi.tests;
 
 sudo reboot;
