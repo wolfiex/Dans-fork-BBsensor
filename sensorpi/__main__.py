@@ -113,18 +113,7 @@ else:
     # inefficient I know, but it will only be used for testing
 from .SensorMod import upload
 from .SensorMod import gps
-try:
-    from .SensorMod import R1
-    OPC = True
-    log.info ("OPC found. Proceeding")
-except ImportError:
-    OPC = False
-    log.warning ("OPC library could not be imported")
-
-if not OPC:
-    if "bbsensor" in hostname or "bbstatic" in hostname:
-        log.warning("No OPC present. Stopping program")
-        STOP = True
+from .SensorMod import R1
 
 ########################################################
 ##  Setup
@@ -133,7 +122,21 @@ gpsdaemon = gps.init(wait=False)
 if not gpsdaemon and "bbsensor" in hostname:
     log.warning('NO GPS FOUND!')
     if OLED_module : oled.standby(message = "   -- NO GLONASS --   ")
-if OPC: alpha = R1.alpha
+        
+try:        
+   alpha = R1.alpha
+   log.info ("OPC found. Proceeding")
+   OPC = True
+except:
+    OPC: False
+    log.warning ("OPC library could not be imported")
+
+if not OPC:
+    if "bbsensor" in hostname or "bbstatic" in hostname:
+        log.warning("No OPC present. Stopping program")
+        STOP = True
+
+    
 loading = power.blink_nonblock_inf()
 
 
