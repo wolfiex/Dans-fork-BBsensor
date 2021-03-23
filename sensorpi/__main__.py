@@ -116,8 +116,10 @@ from .SensorMod import gps
 try:
     from .SensorMod import R1
     OPC = True
+    log.info ("OPC found. Proceeding")
 except ImportError:
     OPC = False
+    log.warning ("OPC library could not be imported")
 
 if not OPC:
     if "bbsensor" in hostname or "bbstatic" in hostname:
