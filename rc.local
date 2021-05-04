@@ -20,7 +20,7 @@ alias python='python3'
 LOC='/root'
 
 export SP_UNAME=`xxd -p -r <(echo "65617261713031406c656564732e61632e756b0a")`
-export SP_PASSWORD=`xxd -p -r <(echo "346972517561696c74790a")`
+export SP_PASSWORD=`xxd -p -r <(echo "3469725175616c6974790a")`
 
 
 if $(cd ${LOC}/BBSensor && git status --branch --porcelain | grep -q behind); then
