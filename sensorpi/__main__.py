@@ -35,7 +35,7 @@ from re import sub
 
 ## runtime constants
 CSV = False
-CONTINUOUS = False
+CONTINUOUS = True
 DHT_module = False
 
 hostname = socket.gethostname()
