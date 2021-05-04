@@ -35,7 +35,7 @@ from re import sub
 
 ## runtime constants
 CSV = False
-CONTINUOUS = True
+CONTINUOUS = False
 DHT_module = False
 
 hostname = socket.gethostname()
@@ -447,7 +447,7 @@ while True:
 
     if SAMPLE_LENGTH>0:
         alpha.on()
-        time.sleep(3)  
+        time.sleep(3)
         power.ledoff()
 
         ## run cycle
