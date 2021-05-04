@@ -12,13 +12,13 @@ sudo apt-get install -y python3-ipython;
 sudo apt-get install -y screen;
 
 git submodule update --init --recursive;
-pip3 install pyusbiss -y;
-pip3 install git+https://github.com/doceme/py-spidev.git -y;
+pip3 install pyusbiss;
+pip3 install git+https://github.com/doceme/py-spidev.git;
 
 cd py-opc-R1 && sudo python3 setup.py develop ; cd -
 
-pip3 install db-sqlite3 -y;
-pip3 install cryptography -y;
+pip3 install db-sqlite3;
+pip3 install cryptography;
 
 pip3 install wifindme;
 sudo apt-get install ntp --yes ;
@@ -26,10 +26,10 @@ sudo timedatectl set-ntp true
 pip3 install Adafruit_DHT;
 pip3 uninstall numpy -y;
 sudo apt-get install python3-numpy --yes ;
-pip3 install pandas -y;
+pip3 install pandas;
 
 #For Staging Data - Sensors
-pip3 install pysftp -y;
+pip3 install pysftp;
 
 #For Uploading Data - ServerPi
 pip3 install Office365-REST-Python-Client==2.2.2; # for uploading data to sharepoint
