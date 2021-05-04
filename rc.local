@@ -139,7 +139,7 @@ if [[ -f /root/.params ]]; then
     cd ${LOC}/BBSensor/setup && . opc_install.sh
   fi
 else
-  cd ${LOC}/BBSensor/setup && . opc_install.sh
+  echo "No file cd ${LOC}/BBSensor/setup && . opc_install.sh"
 fi
 
 cd ${LOC}/BBSensor && sudo python3 -m sensorpi >> /root/sensor.log &
