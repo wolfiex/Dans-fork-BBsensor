@@ -17,7 +17,7 @@ __author__ = "Dan Ellis, Christopher Symonds"
 __copyright__ = "Copyright 2020, University of Leeds"
 __credits__ = ["Dan Ellis", "Christopher Symonds", "Jim McQuaid", "Kirsty Pringle"]
 __license__ = "MIT"
-__version__ = "0.5.0"
+__version__ = "0.8.1"
 __maintainer__ = "D. Ellis"
 __email__ = "D.Ellis@leeds.ac.uk"
 __status__ = "Prototype"
@@ -122,8 +122,8 @@ gpsdaemon = gps.init(wait=False)
 if not gpsdaemon and "bbsensor" in hostname:
     log.warning('NO GPS FOUND!')
     if OLED_module : oled.standby(message = "   -- NO GLONASS --   ")
-        
-try:        
+
+try:
    alpha = R1.alpha
    log.info ("OPC found. Proceeding")
    OPC = True
@@ -136,7 +136,7 @@ if not OPC:
         log.warning("No OPC present. Stopping program")
         STOP = True
 
-    
+
 loading = power.blink_nonblock_inf()
 
 
@@ -399,6 +399,7 @@ def upload_to_external(DATE):
                 upload_success = upload.upload()
             except Exception as e:
                 log.error("Error in trying to upload data to external storage")
+                log.error("Error message : {}".format(e))
                 upload_success = False
 
             if upload_success:
