@@ -436,7 +436,7 @@ MAIN
 ## Run Loop
 ########################################################
 
-SAMPLE_LENGTH=10 # initial sample set is only 10 seconds for db save debugging purposes. This then gets autoupdated within the relevant sections.
+SAMPLE_LENGTH=300 # initial sample set is only 10 seconds for db save debugging purposes. This then gets autoupdated within the relevant sections.
 
 while True:
     #update less frequenty in loop
@@ -446,6 +446,7 @@ while True:
 
     if SAMPLE_LENGTH>0:
         alpha.on()
+        time.sleep(3)  
         power.ledoff()
 
         ## run cycle
