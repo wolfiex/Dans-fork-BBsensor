@@ -303,7 +303,7 @@ def rebuilddb(DATE):
     log.debug('rebuilding db')
     builddb.builddb(db.conn)
 
-    log.info('upload complete {} {}'.format(DATE, datetime.utcnow().strftime("%X")))
+    log.info('Staging complete {} {}'.format(DATE, datetime.utcnow().strftime("%X")))
 
     with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
         lines=f.readlines()
@@ -369,22 +369,25 @@ def update(DATE):
 
 def stagedata(DATE):
 
-    if OLED_module: oled.standby(message = "   --  staging  --   ")
-    #check if connected to wifi
-    loading = power.blink_nonblock_inf_update()
+    global LAST_SAVE
 
-    try:
-        stage_success = upload.stage(SERIAL, __RDIR__)
-    except Exception as e:
-        log.error("Error in attempting staging serverpi data - {}".format(e))
-        stage_success = False
+    if DATE != LAST SAVE:
+        if OLED_module: oled.standby(message = "   --  staging  --   ")
+        #check if connected to wifi
+        loading = power.blink_nonblock_inf_update()
 
-    if stage_success:
-        rebuilddb(DATE)
+        try:
+            stage_success = upload.stage(SERIAL, __RDIR__)
+        except Exception as e:
+            log.error("Error in attempting staging serverpi data - {}".format(e))
+            stage_success = False
 
-    while loading.isAlive():
-        power.stopblink(loading)
-        loading.join(.1)
+        if stage_success:
+            rebuilddb(DATE)
+
+        while loading.isAlive():
+            power.stopblink(loading)
+            loading.join(.1)
 
 def upload_to_external(DATE):
 
