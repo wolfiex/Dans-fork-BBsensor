@@ -66,3 +66,9 @@ git fetch origin
 
 git reset --hard origin/
 ```
+
+## Code and package updates
+
+Code can be updated on sensors remotely by pushing to this git repo. All sensors and servers have a scheduled git fetch every day, which will pick up any changes to the code from this repo and trigger a reboot and merge process.
+Code changes to the linked SensorMod repo which contains shared libraries are not picked up in the same way, and so changes to that repo should be accompanied by a small change to this repo to cause a reboot.
+Changes to packages (installed via the setup/opc_install.sh script) will only be added to the installation script by default. To run the installation script remotely, you should change the version number in the rc.local file. This will trigger a reboot and cause the opc_install script to be run. This may take a while to run.
