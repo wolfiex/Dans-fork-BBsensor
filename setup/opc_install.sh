@@ -67,6 +67,8 @@ sudo rtcctl show date
 sudo apt autoremove -y;
 echo 'finished'
 
+
+mv /root/se*r.db pre_setupscript_sr.db;
 if [[ ! -f /root/server.db && ! -f /root/sensor.db ]]; then
   cd /root/BBSensor && python3 -m sensorpi.SensorMod.db new;
 fi
