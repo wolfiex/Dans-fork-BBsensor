@@ -371,7 +371,7 @@ def stagedata(DATE):
 
     global LAST_SAVE
 
-    if DATE != LAST SAVE:
+    if DATE != LAST_SAVE:
         if OLED_module: oled.standby(message = "   --  staging  --   ")
         #check if connected to wifi
         loading = power.blink_nonblock_inf_update()
