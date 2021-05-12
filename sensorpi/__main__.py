@@ -341,6 +341,7 @@ def upload_to_server(DATE):
 def update(DATE):
 
     global LAST_UPDATE
+    global STOP
 
     if DATE != LAST_UPDATE:
         log.debug('Updating time and code, hour={}'.format(hour))
