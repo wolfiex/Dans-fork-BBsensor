@@ -1,4 +1,5 @@
 #Package updates
+sudo apt-get update;
 
 #For Staging Data - Sensors
 pip3 install pysftp;
