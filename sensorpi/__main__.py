@@ -44,7 +44,7 @@ if not "bbsensor" in hostname:   # For static sensor or serverpi, force continuo
     CONTINUOUS = True
 
 # how long do we wait before polling a histogram (s)
-SAMPLING_DELAY = 10
+SAMPLING_DELAY = 5
 
 ### hours (not inclusive)
 NIGHT = [18,7]  # stop 07 - 6:59
@@ -224,17 +224,18 @@ def runcycle(SAMPLE_LENGTH):
 
     results = []
 
-    #alpha.on()
-
+    alpha.on()
+    time.sleep(1)
     start = time.time()
+    alpha.pm() # remove first value
     while time.time()-start < SAMPLE_LENGTH:
         now = datetime.utcnow()
 
         # sampling delay
         time.sleep(SAMPLING_DELAY) # keep as 1
 
-        pm = R1.poll(alpha)
-
+        pm = alpha.histogram()
+        #print(pm)
         if float(pm['PM1'])+float(pm['PM10'])  > 0:  #if there are results.
 
             if DHT_module: rh,temp = DHT.read()
@@ -277,8 +278,8 @@ def runcycle(SAMPLE_LENGTH):
             break
 
 
-#     alpha.off()
-#     time.sleep(1)# Let the rpi turn off the fan
+    alpha.off()
+    time.sleep(1)# Let the rpi turn off the fan
     return results
 
 
@@ -446,8 +447,8 @@ while True:
 
 
     if SAMPLE_LENGTH>0:
-        alpha.on()
-        time.sleep(3)
+        #alpha.on()
+        #time.sleep(3)
         power.ledoff()
 
         ## run cycle

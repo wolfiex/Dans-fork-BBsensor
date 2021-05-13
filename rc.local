@@ -136,10 +136,15 @@ fi
 
 if [[ -f /root/.params ]]; then
   if ! grep -q $BB_VERSION /root/.params; then
-    cd ${LOC}/BBSensor/setup && . opc_install.sh
+    rm /root/.params
+    echo "$BB_VERSION" > /root/.params
+    echo `xxd -p -r <(echo "$SP_UNAME")` >> /root/.params
+    echo `xxd -p -r <(echo "$SP_PASSWORD")` >> /root/.params
   fi
 else
-  cd ${LOC}/BBSensor/setup && . opc_install.sh
+    echo "$BB_VERSION" > /root/.params
+    echo `xxd -p -r <(echo "$SP_UNAME")` >> /root/.params
+    echo `xxd -p -r <(echo "$SP_PASSWORD")` >> /root/.params
 fi
 
 cd ${LOC}/BBSensor && sudo python3 -m sensorpi >> /root/sensor.log &
