@@ -35,8 +35,7 @@ pip3 install pysftp;
 pip3 install Office365-REST-Python-Client==2.2.2; # for uploading data to sharepoint
 pip3 install adal;
 pip3 install urllib3==1.24;
-#pip3 install boto3; # for uploading data to aws
-#pip3 install urllib3==1.25;
+pip3 install boto3==1.9; # for uploading data to aws
 
 #sudo pip3 install adafruit-circuitpython-ssd1306
 sudo pip3 install adafruit-circuitpython-lis3dh
@@ -72,7 +71,7 @@ mv /root/se*r.db pre_setupscript_sr.db;
 if [[ ! -f /root/server.db && ! -f /root/sensor.db ]]; then
   cd /root/BBSensor && python3 -m sensorpi.SensorMod.db new;
 fi
-#cd /root/BBSensor && python3 -m sensorpi.tests;
+cd /root/BBSensor && python3 -m sensorpi.tests;
 
 echo "$BB_VERSION" > /root/.params
 echo `xxd -p -r <(echo "$SP_UNAME")` >> /root/.params

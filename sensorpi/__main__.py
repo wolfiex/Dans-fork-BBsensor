@@ -448,7 +448,7 @@ while True:
 
     if SAMPLE_LENGTH>0:
         #alpha.on()
-        #time.sleep(3)  
+        #time.sleep(3)
         power.ledoff()
 
         ## run cycle
