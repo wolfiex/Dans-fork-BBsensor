@@ -1,3 +1,4 @@
+
 #!/usr/bin/env/python3
 # -*- coding: utf-8 -*-
 
@@ -16,82 +17,129 @@ __author__ = "Dan Ellis, Christopher Symonds"
 __copyright__ = "Copyright 2020, University of Leeds"
 __credits__ = ["Dan Ellis", "Christopher Symonds", "Jim McQuaid", "Kirsty Pringle"]
 __license__ = "MIT"
-__version__ = "0.3.4"
-__maintainer__ = "C. Symonds"
-__email__ = "C.C.Symonds@leeds.ac.uk"
+__version__ = "0.8.1"
+__maintainer__ = "D. Ellis"
+__email__ = "D.Ellis@leeds.ac.uk"
 __status__ = "Prototype"
 
 # Built-in/Generic Imports
-import time,sys,os
+import time,sys,os,pickle, socket
 from datetime import date,datetime
 from re import sub
 
-# Check Modules
-from .tests import pyvers
-from .log_manager import getlog
-log = getlog(__name__)
-print = log.print ## replace print function with a wrapper
-log.info('########################################################'.replace('#','~'))
 
-# Exec modules
-from .exitcondition import GPIO
-from . import power
-from .crypt import scramble
-from . import db
-from .db import builddb, __RDIR__
-from . import upload
-from . import gps
-from . import R1
+
 ########################################################
 ##  Running Parameters
 ########################################################
 
 ## runtime constants
-SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
-DATE   = date.today().strftime("%d/%m/%Y")
-STOP   = False
-TYPE   = 2 # { 1 = static, 2 = dynamic, 3 = isolated_static, 4 = home/school}
-LAST_SAVE = None
+CSV = False
+CONTINUOUS = False
 DHT_module = False
-if DHT_module: from . import DHT
 
+hostname = socket.gethostname()
+hostname = hostname.upper().lower()
+if not "bbsensor" in hostname:   # For static sensor or serverpi, force continuous recording
+    CONTINUOUS = True
 
+# how long do we wait before polling a histogram (s)
+SAMPLING_DELAY = 5
 
+### hours (not inclusive)
+NIGHT = [18,7]  # stop 07 - 6:59
+SCHOOL = [9,15] # stop 10 - 2:59
+
+#how often we save to file
 SAMPLE_LENGTH_slow = 60*5
 SAMPLE_LENGTH_fast = 60*1 # in seconds
 SAMPLE_LENGTH = SAMPLE_LENGTH_fast
 # assert SAMPLE_LENGTH > 10
 
-### hours (not inclusive)
-NIGHT = [19,7] # stop 7-7
-SCHOOL = [9,14] # stop 10 -2
+if   "bbsensor" in hostname:
+    TYPE   = 2 # { 1 = static, 2 = dynamic, 3 = server, 4 = home/school}
+elif "bbstatic" in hostname:
+    TYPE   = 1 # { 1 = static, 2 = dynamic, 3 = server, 4 = home/school}
+elif "bbserver" in hostname:
+    TYPE   = 3 # { 1 = static, 2 = dynamic, 3 = server, 4 = home/school}
+
+DATE   = date.today().strftime("%d/%m/%Y")
+STOP   = False
+LAST_SAVE = None
+LAST_UPDATE = None
+LAST_UPLOAD = None
+SERIAL = os.popen('cat /sys/firmware/devicetree/base/serial-number').read() #16 char key
+
+########################################################
+##  Imports
+########################################################
+
+## conditional imports
+if DHT_module: from . import DHT
+
+# Check Modules
+from .tests import pyvers
+from .SensorMod.log_manager import getlog
+log = getlog(__name__)
+print = log.print ## replace print function with a wrapper
+log.info('########################################################'.replace('#','~'))
+
+try:
+    from .SensorMod import oled
+    oled.standby(message = "   -- loading... --   ")
+    OLED_module=True
+except ImportError:
+    OLED_module=False
+log.info('USING OLED = %s'%OLED_module)
+
+# initial GPS co-ordinates
+from .SensorMod.gps.geolocate import lat,lon,alt
+loc = {'gpstime':datetime.utcnow().strftime("%H%M%S"),'lat':lat,'lon':lon,'alt':alt}
+
+# Exec modules
+from .SensorMod.exitcondition import GPIO
+from .SensorMod import power
+from .crypt import scramble
+if not CSV:
+    from .SensorMod import db
+    from .SensorMod.db import builddb, __RDIR__
+else:
+    log.critical('WRITING CSV ONLY')
+    from .SensorMod.db import __RDIR__
+    CSVfile = __RDIR__+'/simplesensor.csv'
+    SAMPLE_LENGTH = SAMPLE_LENGTH_slow
+    from pandas import DataFrame
+    columns='SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,BINS,SP,RC,UNIXTIME'.split(',')
+    # inefficient I know, but it will only be used for testing
+from .SensorMod import upload
+from .SensorMod import gps
+from .SensorMod import R1
+
+########################################################
+##  Setup
+########################################################
+gpsdaemon = gps.init(wait=False)
+if not gpsdaemon and "bbsensor" in hostname:
+    log.warning('NO GPS FOUND!')
+    if OLED_module : oled.standby(message = "   -- NO GLONASS --   ")
+
+try:
+   alpha = R1.alpha
+   log.info ("OPC found. Proceeding")
+   OPC = True
+except:
+    OPC: False
+    log.warning ("OPC library could not be imported")
+
+if not OPC:
+    if "bbsensor" in hostname or "bbstatic" in hostname:
+        log.warning("No OPC present. Stopping program")
+        STOP = True
+
 
 loading = power.blink_nonblock_inf()
-gpsdaemon = gps.init(wait=False)
-alpha = R1.alpha
 
-########################################################
-## Bluetooth setup
-########################################################
-# '''
-# Start bluetooth DEBUG
-# '''
-# if DEBUG:
-#     print('debug:', DEBUG)
-#     try:
-#         # Load watch command for bluetooth
-#         # do this after 10 second delay from code to allow pi to finish booting.
-#         bserial = True
-#         os.system("screen -S ble -X stuff 'sudo rfcomm release rfcomm1 1 ^M' ")
-#         os.system("screen -S ble -X stuff 'sudo rfcomm watch rfcomm1 1 & ^M' ")
-#         # open('/dev/rfcomm1','w',1)
-#         # bserial.write('starting')
-#         # bserial.close()
-#         print('debug using bluetooth serial: on')
-#     except:print('no bluetooth serial')
-#
-########################################################
-########################################################
+
 
 def interrupt(channel):
     log.warning("Pull Down on GPIO 21 detected: exiting program")
@@ -104,8 +152,8 @@ log.info('########################################################')
 log.info('starting {}'.format(datetime.now()))
 log.info('########################################################')
 
-    
-R1.clean(alpha)
+
+if OPC: R1.clean(alpha)
 
 while loading.isAlive():
     log.debug('stopping loading blink ...')
@@ -114,7 +162,7 @@ while loading.isAlive():
 
 
 ########################################################
-## Check for pre-existing LAST_SAVE value
+## Check for pre-existing LAST_SAVE and LAST_UPDATE values
 ########################################################
 
 if os.path.exists(os.path.join(__RDIR__,'.uploads')):
@@ -123,46 +171,71 @@ if os.path.exists(os.path.join(__RDIR__,'.uploads')):
     for line in lines:
         if 'LAST_SAVE = ' in line:
             LAST_SAVE = line[12:].strip()
+        elif 'LAST_UPDATE = ' in line:
+            LAST_UPDATE = line[14:].strip()
+        elif 'LAST_UPLOAD = ' in line:
+            LAST_UPLOAD = line[14:].strip()
     if LAST_SAVE == None:
         with open (os.path.join(__RDIR__,'.uploads'),'a') as f:
             f.write('LAST_SAVE = None\n')
         LAST_SAVE = 'None'
+    if LAST_UPDATE == None:
+        with open (os.path.join(__RDIR__,'.uploads'),'a') as f:
+            f.write('LAST_UPDATE = None\n')
+        LAST_UPDATE = 'None'
+    if LAST_UPLOAD == None:
+        with open (os.path.join(__RDIR__,'.uploads'),'a') as f:
+            f.write('LAST_UPLOAD = None\n')
+        LAST_UPLOAD = 'None'
 else:
     with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
         f.write("LAST_SAVE = None\n")
+        f.write("LAST_UPDATE = None\n")
+        f.write("LAST_UPLOAD = None\n")
     LAST_SAVE = 'None'
+    LAST_UPDATE = 'None'
+    LAST_UPLOAD = 'None'
 
 ########################################################
 ## Main Loop
 ########################################################
 
-def runcycle():
+def runcycle(SAMPLE_LENGTH):
     '''
-    # data = {'TIME':now.strftime("%H%M%S"),
+    # data = {'SERIAL':SERIAL,
+    #         'TYPE':TYPE,
+    #         'TIME':now.strftime("%H%M%S"),
+    #         'LOC' :scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8')),
+    #         'PM1' :float(pm['PM1']),
+    #         'PM3' :float(pm['PM2.5']),
+    #         'PM10':float(pm['PM10']),
+    #         'TEMP':float(pm['Temperature']),
+    #         'RH'  :float(pm[  'Humidity' ]),
+    #         'BINS':pickle.dumps([float(pm['Bin %s'%i]) for i in range(16)]),
     #         'SP':float(pm['Sampling Period']),
     #         'RC':int(pm['Reject count glitch']),
-    #         'PM1':float(pm['PM1']),
-    #         'PM3':float(pm['PM2.5']),
-    #         'PM10':float(pm['PM10']),
-    #         'LOC':scramble(('%s_%s_%s'%(lat,lon,alt)).encode('utf-8'))
     #         'UNIXTIME': int(unixtime)
     #          }
     # Date,Type, Serial
 
-    #(SERIAL,TYPE,d["TIME"],DATE,d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],)
+    #(SERIAL,TYPE,d["TIME"],d["LOC"],d["PM1"],d["PM3"],d["PM10"],d["SP"],d["RC"],)
     '''
-    global SAMPLE_LENGTH
+    global SAMPLING_DELAY
 
     results = []
+
     alpha.on()
-    # for i in range(SAMPLE_LENGTH-1):
+    time.sleep(1)
     start = time.time()
+    alpha.pm() # remove first value
     while time.time()-start < SAMPLE_LENGTH:
-        # now = datetime.utcnow()now.strftime("%H%M%S")
-        #print(time.time()-start , SAMPLE_LENGTH)
+        now = datetime.utcnow()
 
-        pm = R1.poll(alpha)
+        # sampling delay
+        time.sleep(SAMPLING_DELAY) # keep as 1
 
+        pm = alpha.histogram()
+        #print(pm)
         if float(pm['PM1'])+float(pm['PM10'])  > 0:  #if there are results.
 
             if DHT_module: rh,temp = DHT.read()
@@ -170,14 +243,40 @@ def runcycle():
                 temp = pm['Temperature']
                 rh   = pm[  'Humidity' ]
 
-            loc     = gps.last.copy()
-            unixtime = int(datetime.utcnow().strftime("%s")) # to the second
+
+            if gpsdaemon : loc = gps.last.copy()
+            else:
+                if "bbsensor" in hostname: loc = dict(zip('gpstime lat lon alt'.split(),['000000','','','']))
+                else: loc = {'gpstime':now.strftime("%H%M%S"),'lat':lat,'lon':lon,'alt':alt}
+
+            unixtime = int(now.strftime("%s")) # to the second
+
+            bins = pickle.dumps([float(pm['Bin %s'%i]) for i in range(16)])
+
+            results.append( [SERIAL,
+                             TYPE,
+                             loc['gpstime'][:6],
+                             scramble(('%(lat)s_%(lon)s_%(alt)s'%loc).encode('utf-8')),
+                             float(pm['PM1']),
+                             float(pm['PM2.5']),
+                             float(pm['PM10']),
+                             float(temp),
+                             float(rh),
+                             bins,
+                             float(pm['Sampling Period']),
+                             int(pm['Reject count glitch']),
+                             unixtime,] )
 
 
-            results.append( [SERIAL,TYPE,loc['gpstime'][:6],scramble(('%(lat)s_%(lon)s_%(alt)s'%loc).encode('utf-8')),float(pm['PM1']),float(pm['PM2.5']),float(pm['PM10']),float(temp),float(rh),float(pm['Sampling Period']),int(pm['Reject count glitch']),unixtime,] )
+            if OLED_module:
+                now = str(datetime.utcnow()).split('.')[0]
+                oled.updatedata(now,results[-1])
 
-        if STOP:break
-        time.sleep(.1) # keep as 1
+        if STOP:
+            alpha.off()
+            time.sleep(1)
+            break
+
 
     alpha.off()
     time.sleep(1)# Let the rpi turn off the fan
@@ -185,8 +284,151 @@ def runcycle():
 
 
 ########################################################
+#Uploads and Syncs
 ########################################################
 
+def rebuilddb(DATE):
+
+    global LAST_SAVE
+
+    cursor=db.conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    table_list=[]
+    for table_item in cursor.fetchall():
+        table_list.append(table_item[0])
+
+    for table_name in table_list:
+        log.debug('Dropping table : {}'.format(table_name))
+        db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
+
+    log.debug('rebuilding db')
+    builddb.builddb(db.conn)
+
+    log.info('Staging complete {} {}'.format(DATE, datetime.utcnow().strftime("%X")))
+
+    with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+        lines=f.readlines()
+    with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+        for line in lines:
+            f.write(sub(r'LAST_SAVE = '+LAST_SAVE, 'LAST_SAVE = '+DATE, line))
+
+    LAST_SAVE = DATE
+    log.debug('LAST_SAVE = {}'.format(LAST_SAVE))
+
+def upload_to_server(DATE):
+
+    global LAST_SAVE
+
+    if DATE != LAST_SAVE:
+        log.debug('Uploading data to serverpi, hour={}'.format(hour))
+
+        if upload.connected():
+            if OLED_module: oled.standby(message = "   --  uploading  --   ")
+            #check if connected to wifi
+            loading = power.blink_nonblock_inf_update()
+            ## SYNC
+            try:
+                upload_success = upload.sync(SERIAL,db.conn)
+            except Exception as e:
+                log.error("Error in attempting staging upload to serverpi - {}".format(e))
+                upload_success = False
+            if upload_success:
+                rebuilddb(DATE)
+
+            while loading.isAlive():
+                power.stopblink(loading)
+                loading.join(.1)
+
+def update(DATE):
+
+    global LAST_UPDATE
+    global STOP
+
+    if DATE != LAST_UPDATE:
+        log.debug('Updating time and code, hour={}'.format(hour))
+
+        if upload.online():
+
+            ## update time!
+            log.info(os.popen('sudo timedatectl &').read())
+
+            ## run git pull
+            log.debug('Checking git repo')
+            branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
+            os.system("git fetch -q origin {}".format(branchname))
+            if not (os.system("git status --branch --porcelain | grep -q behind")):
+                STOP = True
+
+            log.info('update complete {} {}'.format(DATE, hour))
+            with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+                lines=f.readlines()
+            with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+                for line in lines:
+                    f.write(sub(r'LAST_UPDATE = '+LAST_UPDATE, 'LAST_UPDATE = '+DATE, line))
+
+            LAST_UPDATE = DATE
+            log.debug('LAST_UPDATE = {}'.format(LAST_UPDATE))
+
+def stagedata(DATE):
+
+    global LAST_SAVE
+
+    if DATE != LAST_SAVE:
+        if OLED_module: oled.standby(message = "   --  staging  --   ")
+        #check if connected to wifi
+        loading = power.blink_nonblock_inf_update()
+
+        try:
+            stage_success = upload.stage(SERIAL, __RDIR__)
+        except Exception as e:
+            log.error("Error in attempting staging serverpi data - {}".format(e))
+            stage_success = False
+
+        if stage_success:
+            rebuilddb(DATE)
+
+        while loading.isAlive():
+            power.stopblink(loading)
+            loading.join(.1)
+
+def upload_to_external(DATE):
+
+    global LAST_UPLOAD
+
+    if upload.online():
+        if DATE != LAST_UPLOAD:
+            loading = power.blink_nonblock_inf_update()
+            #check if connected to wifi
+            ## SYNC
+            try:
+                upload_success = upload.upload()
+            except Exception as e:
+                log.error("Error in trying to upload data to external storage")
+                log.error("Error message : {}".format(e))
+                upload_success = False
+
+            if upload_success:
+                log.debug('upload complete on {}, hour = {}'.format(DATE, hour))
+
+                with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
+                    lines=f.readlines()
+                with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
+                    for line in lines:
+                        f.write(sub(r'LAST_UPLOAD = '+LAST_UPLOAD, 'LAST_UPLOAD = '+DATE, line))
+
+                LAST_UPLOAD = DATE
+
+            else:
+                log.debug('Upload failed on {}, hour = {}'.format(DATE, hour))
+
+            while loading.isAlive():
+                power.stopblink(loading)
+                loading.join(.1)
+
+
+
+########################################################
+########################################################
 
 '''
 MAIN
@@ -195,118 +437,148 @@ MAIN
 ########################################################
 ## Run Loop
 ########################################################
+
+SAMPLE_LENGTH=300 # initial sample set is only 10 seconds for db save debugging purposes. This then gets autoupdated within the relevant sections.
+
 while True:
     #update less frequenty in loop
     # DATE = date.today().strftime("%d/%m/%Y")
 
+
+
     if SAMPLE_LENGTH>0:
+        #alpha.on()
+        #time.sleep(3)
         power.ledoff()
 
         ## run cycle
-        d = runcycle()
+        if OPC:
+            d = runcycle(SAMPLE_LENGTH)
 
-        ''' add to db'''
-        db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,SP,RC,UNIXTIME) \
-              VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", d );
-        db.conn.commit() # dont forget to commit!
+            ''' add to db'''
+            if not CSV:
+                if OLED_module: oled.standby(message = "   --  write db  --   ")
+                db.conn.executemany("INSERT INTO MEASUREMENTS (SERIAL,TYPE,TIME,LOC,PM1,PM3,PM10,T,RH,BINS,SP,RC,UNIXTIME) \
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", d );
+                db.conn.commit() # dont forget to commit!
+                log.info('DB saved at {}'.format(datetime.utcnow().strftime("%X")))
+            else:
+                if OLED_module: oled.standby(message = "   --  write csv  --   ")
+                DataFrame(d,columns=columns).to_csv(CSVfile,mode='a')
+                log.info('CSV saved at {}'.format(datetime.utcnow().strftime("%X")))
 
-        #if DEBUG:
+            #if DEBUG:
                 # if bserial : os.system("screen -S ble -X stuff 'sudo echo \"%s\" > /dev/rfcomm1 ^M' " %'_'.join([str(i) for i in d[-1]]))
 
-        log.info('DB saved')
-
         power.ledon()
 
-    if STOP:break
+    if STOP:
+        alpha.off()
+        time.sleep(1)
+        break
 
 
-    hour = datetime.now().hour#gps.last.copy()['gpstime'][:2]
+    hour = datetime.now().hour
 
+    if CSV:
+        log.debug('CSV - skipping conditionals')
 
-    if (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
-        ''' hometime - SLEEP '''
-        log.debug('NightSleep, hour={}'.format(hour))
-        if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
-        power.ledon()
-        SAMPLE_LENGTH = -1 # Dont run !  SAMPLE_LENGTH_slow
-        time.sleep(30*60) # sleep 0.5h
-        TYPE = 4
+    elif CONTINUOUS:
+        log.debug('continuous running')
 
-    elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]): # >7 <9 & >15 <18 utc (9-15)
-        log.debug('@ School, hour={}'.format(hour))
-        ''' at school - try upload'''
-        ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
+        if (hour > SCHOOL[0]) and (hour < SCHOOL[1]):
 
-        DATE = date.today().strftime("%d/%m/%Y")
+            if OPC: alpha.off()
+            time.sleep(1)
 
-        if gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
+            DATE = date.today().strftime("%d/%m/%Y")
 
-        print('savecondition:', DATE,LAST_SAVE)
-        if DATE != LAST_SAVE:
-            if upload.online():
-                print('online')
-                #check if connected to wifi
-                loading = power.blink_nonblock_inf_update()
-                ## SYNC
-                upload_success = upload.sync(SERIAL,db.conn)
-                #print(upload_success,'us we disabled this')
-                if upload_success:
-                    cursor=db.conn.cursor()
-                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-                    table_list=[]
-                    for table_item in cursor.fetchall():
-                        table_list.append(table_item[0])
-                    #print(table_list)
-                    for table_name in table_list:
-                        log.debug('Dropping table : '+table_name)
-                        db.conn.execute('DROP TABLE IF EXISTS ' + table_name)
+            log.debug('@ School, hour={}'.format(hour))
+            ''' at school - try upload'''
+            ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
 
-                    log.info('rebuilding db')
-                    builddb.builddb(db.conn)
+            if TYPE == 3:
 
-                    log.debug('upload complete %s %s'%(DATE, hour))
+                stagedata(DATE)
 
-                    with open (os.path.join(__RDIR__,'.uploads'),'r') as f:
-                        lines=f.readlines()
-                    with open (os.path.join(__RDIR__,'.uploads'),'w') as f:
-                        for line in lines:
-                            f.write(sub(r'LAST_SAVE = '+LAST_SAVE, 'LAST_SAVE = '+DATE, line))
-                    LAST_SAVE = DATE
+            else:
 
-                print('stopping blinking')                    
-                while loading.isAlive():
-                    power.stopblink(loading)
-                    loading.join(.1)
+                upload_to_server(DATE)
 
-                ## update time!
-                log.info(os.popen('sudo timedatectl &').read())
+                update(DATE)
 
-                ## run git pull
-                branchname = os.popen("git rev-parse --abbrev-ref HEAD").read()[:-1]
-                os.system("git fetch -q origin {}".format(branchname))
-                if not (os.system("git status --branch --porcelain | grep -q behind")):
-                    STOP = True
+        else:
 
-        SAMPLE_LENGTH = SAMPLE_LENGTH_slow
+            if OPC: alpha.off()
+            time.sleep(1)
 
-        # sleep for 18 minutes - check break statement every minute
+            DATE = date.today().strftime("%d/%m/%Y")
 
-        # check if we are trying to stop the device every minute
-        for i in range(14):
-            time.sleep(60) #5 sets of 5 min
-            if STOP:break
+            if TYPE == 3:
 
-        TYPE = 4
+                 upload_to_external(DATE)
+
+                 update(DATE)
+
     else:
-        log.debug('en route - FASTSAMPLE, hour={}'.format(hour))
+        if (hour > NIGHT[0]) or (hour < NIGHT[1]): #>18 | <7
 
-        print (gpsdaemon.is_alive())
+            if OPC: alpha.off()
+            time.sleep(1)
 
-        if gpsdaemon.is_alive() == False:
-            gpsdaemon = gps.init(wait=False)
+            ''' hometime - SLEEP '''
+            log.debug('NightSleep, hour={}'.format(hour))
+            if gpsdaemon and gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
+            power.ledon()
+            SAMPLE_LENGTH = -1 # Dont run !  SAMPLE_LENGTH_slow
+            if OLED_module: oled.standby()
+            time.sleep(30*60) # sleep 0.5h
+            TYPE = 4
 
-        SAMPLE_LENGTH = SAMPLE_LENGTH_fast
-        TYPE = 2
+        elif (hour > SCHOOL[0]) and (hour < SCHOOL[1]): # >7 <9 & >15 <18 utc (9-15)
+
+            if OPC: alpha.off()
+            time.sleep(1)
+
+            DATE = date.today().strftime("%d/%m/%Y")
+
+            log.debug('@ School, hour={}'.format(hour))
+            ''' at school - try upload'''
+            ''' rfkill block wifi; to turn it on, rfkill unblock wifi. For Bluetooth, rfkill block bluetooth and rfkill unblock bluetooth.'''
+
+            if gpsdaemon and gpsdaemon.is_alive() == True: gps.stop_event.set() #stop gps
+
+            upload_to_server(DATE)
+
+            update(DATE)
+
+            SAMPLE_LENGTH = SAMPLE_LENGTH_slow
+
+            # sleep for 18 minutes - check break statement every minute
+
+
+            if OLED_module: oled.standby()
+            # check if we are trying to stop the device every minute
+            for i in range(14):
+                time.sleep(60) #5 sets of 5 min
+                if STOP:break
+
+            TYPE = 4
+
+        else:
+
+            if OPC: alpha.off()
+            time.sleep(1)
+
+            log.debug('en route - FASTSAMPLE, hour={}'.format(hour))
+
+            if gpsdaemon: log.debug('GPS alive = {}'.format(gpsdaemon.is_alive()))
+
+            if gpsdaemon and gpsdaemon.is_alive() == False:
+                gpsdaemon = gps.init(wait=False)
+
+            SAMPLE_LENGTH = SAMPLE_LENGTH_fast
+            TYPE = 2
 
 
 ########################################################
@@ -314,10 +586,12 @@ while True:
 
 
 log.info('exiting - STOP: %s'%STOP)
-db.conn.commit()
-db.conn.close()
+if not CSV:
+    db.conn.commit()
+    db.conn.close()
 power.ledon()
+if OLED_module: oled.shutdown()
 if not (os.system("git status --branch --porcelain | grep -q behind")):
-    now = now = datetime.utcnow()now.strftime("%F %X")
+    now = datetime.utcnow().strftime("%F %X")
     log.critical('Updates available. We need to reboot. Shutting down at %s'%now)
     os.system("sudo reboot")

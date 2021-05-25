@@ -1,5 +1,5 @@
 #from .. import R1
-from ..R1 import alpha,info,poll,keep
+from ..SensorMod.R1 import alpha,info,poll,keep
 import time,sys
 
 if sys.version[0] != '3':
@@ -20,7 +20,7 @@ print('turning off')
 alpha.off()
 
 
-
+'''
 print ('onoff')
 for i in range(5):
     print (i)
@@ -29,13 +29,18 @@ for i in range(5):
     alpha.off()
 
     print(d)
-
+'''
 
 
 print ('onstay')
 alpha.on()
+alpha.pm()
 for i in range(10):
     print (i)
-    d = poll(alpha)
+    time.sleep(10)
+    d = alpha.histogram()
+    #poll(alpha)
+    
     print(d)
 alpha.off()
+

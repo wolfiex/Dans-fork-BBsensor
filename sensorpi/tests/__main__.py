@@ -1,4 +1,4 @@
-''' 
+'''
 python3 -m sensorpi.tests
 '''
 
@@ -7,7 +7,7 @@ print('This is pi of serial number: ',os.popen('cat /sys/firmware/devicetree/bas
 
 
 args = sys.argv[1:]
-if len(args) == 0 : args = 'interrupt db temp opc gps'.split()
+if len(args) == 0 : args = 'interrupt db opc gps'.split()
 
 
 from . import pyvers
@@ -15,13 +15,15 @@ if 'interrupt' in args:
   from . import interrupt_test
 if 'db' in args:
   from . import db_test
-  # 
+  #
 if 'temp' in args:
   from . import DHT_test
 if 'opc' in args:
   from . import opc_test
 if 'gps' in args:
   from . import gps_test
+if 'oled' in args:
+  from . import oled_test
 
 
 

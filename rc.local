@@ -3,20 +3,27 @@
 # rc.local
 #
 
+## git certificate errors
+export GIT_SSL_NO_VERIFY=1
+export BB_VERSION="0.8.2"
+
 # Print the IP address
 _IP=$(hostname -I) || true
 if [ "$_IP" ]; then
-  printf "My IP address is %s\n" "$_IP"
+    printf "My IP address is %s\n" "$_IP"
 fi
 
+# Make sure wifi aerial is turned on
+sudo ifconfig wlan0 up;
 #sudo systemctl stop ntp;
 #sudo ntpd -q -g >> /root/time.log
 
 sudo rfkill block bluetooth;
-
-sudo timedatectl >> /root/git.log;
-
+alias python='python3'
 LOC='/root'
+
+export SP_UNAME="65617261713031406c656564732e61632e756b0a"
+export SP_PASSWORD="3469725175616c6974790a"
 
 if $(cd ${LOC}/BBSensor && git status --branch --porcelain | grep -q behind); then
     cd ${LOC}/BBSensor && git merge >> ${LOC}/git.log 2>&1
@@ -33,6 +40,7 @@ while [[ $count -ne 0 ]] ; do
     ((count = count - 1))                  # So we don't go forever.
 done
 
+
 if [[ $rc -eq 0 ]] ; then                  # Make final determination.
 
     RETRIES=5
@@ -42,7 +50,18 @@ if [[ $rc -eq 0 ]] ; then                  # Make final determination.
     # Update the repo, with retries incase the sensor is not connected to the internet.
 
     while [ $COUNT -lt $RETRIES ]; do
-        cd ${LOC}/BBSensor && git pull >> ${LOC}/git.log 2>&1
+        cd ${LOC}/BBSensor && git fetch --recurse-submodules >> ${LOC}/git.log 2>&1;
+        # get submodules for first time if directories present but empty
+        if [ -d ${LOC}/BBSensor/py-opc-R1 ] && [ ! "$(ls -A ${LOC}/BBSensor/py-opc-R1)" ]; then
+            cd ${LOC}/BBSensor && git submodule update --init --recursive >> ${LOC}/git.log 2>&1
+        fi
+         if [ -d ${LOC}/BBSensor/sensorpi/SensorMod ] && [ ! "$(ls -A ${LOC}/BBSensor/sensorpi/SensorMod)" ]; then
+            cd ${LOC}/BBSensor && git submodule update --init --recursive >> ${LOC}/git.log 2>&1
+        fi
+        # run the super command just incase
+        #cd ${LOC}/BBSensor &&git pull && git submodule init && git submodule update && git submodule status
+        cd ${LOC}/BBSensor/sensorpi/SensorMod && git checkout main && git pull origin main>> ${LOC}/git.log 2>&1;
+        echo 'github';
         if [ $? -eq 0 ]; then
             RETRIES=0
             break
@@ -50,22 +69,85 @@ if [[ $rc -eq 0 ]] ; then                  # Make final determination.
         let COUNT=$COUNT+1
         sleep $DELAY
     done
+
 fi
 
-# transfer rules of usb transfer if they dont exist and reboot. 
+
+# SYNC RTC
+sudo timedatectl >> ${LOC}/git.log 2>&1;
+
+# set reat time clock time from system clock
+if [[ $rc -eq 0 ]] ;
+then
+    ## get time from internet
+    sudo systemctl stop ntp
+    sudo ntpd -q -g ;
+
+
+    sudo rtcctl show ;
+    # set reat time clock time from system clock
+    sudo rtcctl init
+else
+
+    echo 'attempting to set date from rtc';
+      ## set date from RTC - this errors if no rtc is available
+    sudo date -s "$(sudo rtcctl show date | cut -c9- )";
+fi;
+echo 'end rtc code';
+
+# set an alarm 7 am next working day
+# sudo rtcctl set alarm1 $(date -d "$last_day +$( if [ `date -d $last_day +%w` == 5 ]; then echo 3; elif [ `date -d $last_day +%w` == 6 ]; then echo 2; else echo 1; fi ) days" +"%d.%m.%Y 07:00")
+# dont forget to turn it on
+# sudo rtcctl on alarm1
+
+
+
+
+
+
+## old rtc code - ignore
+# if sudo i2cdetect -y 1 | grep 68 ; then
+#     echo 'RTC found';
+#     dtoverlay i2c-rtc pcf8523=true wakeup-source=true;
+#     if [ $? -eq 0 ];
+#       then
+#           sudo hwclock -w; # copy from system clock
+#       else
+#           sudo hwclock -s; # copy to system clock
+#     fi;
+# fi;
+
+
+
+
+
+
+
+# transfer rules of usb transfer if they dont exist and reboot.
 if [ ! -f "/etc/udev/rules.d/optional_usb.rules" ]; then
     echo "Adding USB transfer rules";
 
-    chmod a+x /root/BBSensor/usb/*;
-    cp /root/BBSensor/usb/optional_usb.rules /etc/udev/rules.d/;
+    chmod a+x ${LOC}/BBSensor/usb/*;
+    cp ${LOC}/BBSensor/usb/optional_usb.rules /etc/udev/rules.d/;
     chmod a+x /etc/udev/rules.d/optional_usb.rules;
 
     sudo reboot
 fi
 
-sudo timedatectl >> ${LOC}/git.log 2>&1;
+if [[ -f /root/.params ]]; then
+    if ! grep -q $BB_VERSION /root/.params; then
+        cd ${LOC}/BBSensor/setup && . package_updater.sh
+    fi
+else
+    cd ${LOC}/BBSensor/setup && . package_updater.sh
+fi
 
-cd ${LOC}/BBSensor && sudo python3 -m sensorpi >> /root/sensor.log &
+if $(cd ${LOC}/BBSensor && git status --branch --porcelain | grep -q behind); then
+    cd ${LOC}/BBSensor && git merge >> ${LOC}/git.log 2>&1
+    sudo reboot
+else
+    cd ${LOC}/BBSensor && sudo python3 -m sensorpi >> /root/sensor.log &
+fi
 
 #echo 'bbsensor00' | sudo tee  /etc/hostname
 
